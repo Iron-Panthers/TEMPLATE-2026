@@ -357,50 +357,14 @@ public class RobotContainer {
   }
 
   public void updateDashboardStatus() {
-    // FIXME: TEMP DIABLED
-    // SmartDashboard.putBoolean(
-    // "Elevator Initial",
-    // elevator.getPositionTarget() == ElevatorTarget.BOTTOM &&
-    // elevator.reachedTarget());
-    // SmartDashboard.putBoolean(
-    // "Arm Initial", (pivot.getPositionTarget() == PivotTarget.STOW) &&
-    // pivot.reachedTarget());
-    // SmartDashboard.putBoolean(
-    // "Climb Initial", climb.getPositionTarget() == ClimbTarget.STOW &&
-    // climb.reachedTarget());
-    //
-    // SmartDashboard.putBoolean("Tongue 1", tongue.pole1Detected());
-    // SmartDashboard.putBoolean("Tongue 2", tongue.pole2Detected());
-    //
-    // SmartDashboard.putBoolean("Coral Intaked", rollers.intakeDetected());
-    // SmartDashboard.putBoolean("Climb Cage", !climb.hitCage());
-
-    try {
-      SmartDashboard.putString("Current Auto", autoChooser.get().getName());
-    } catch (Exception e) {
-      // Do nothing because the auto chooser is not set ()
-      // HACK: This is a workaround
-    }
+        // TODO: Define all of the dashboard outputs here
+        SmartDashboard.putString("Current Auto", autoChooser.get().getName());
   }
 
   public static double relativeAngularDifference(double currentAngle, double newAngle) {
     double a = ((currentAngle - newAngle) % 360 + 360) % 360;
     double b = ((currentAngle - newAngle) % 360 + 360) % 360;
     return a < b ? a : -b;
-  }
-
-  public static Rotation2d calculateSnapTargetHeading(Rotation2d targetHeading) {
-    targetHeading =
-        targetHeading.rotateBy(
-            new Rotation2d(Math.PI + Math.toRadians(30))); // because back of robot
-    double closest = DriveConstants.REEF_SNAP_ANGLES[0];
-    for (double snap : DriveConstants.REEF_SNAP_ANGLES) {
-      if (Math.abs(relativeAngularDifference(targetHeading.getDegrees(), snap))
-          < Math.abs(relativeAngularDifference(targetHeading.getDegrees(), closest))) {
-        closest = snap;
-      }
-    }
-    return new Rotation2d(Math.toRadians(closest));
   }
 
   public void updateSimulation() {

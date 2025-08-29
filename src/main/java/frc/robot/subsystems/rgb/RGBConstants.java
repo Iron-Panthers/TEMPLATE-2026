@@ -7,8 +7,6 @@ public class RGBConstants {
   public static final RGBConfig RGB_CONFIGS =
       switch (Constants.getRobotType()) {
         case COMP -> new RGBConfig(34, 220);
-        case ALPHA -> new RGBConfig(0, 0);
-        case PROG -> new RGBConfig(0, 0);
         case SIM -> new RGBConfig(0, 0);
       };
 

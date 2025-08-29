@@ -49,7 +49,6 @@ public class VisionConstants {
           // arducam-5 (back left)
           new Transform3d(-0.17, 0.298, 0.3651, new Rotation3d(0, 0, -Math.PI + Math.toRadians(12)))
         };
-        case ALPHA -> new Transform3d[] {};
         default -> new Transform3d[0];
       };
 

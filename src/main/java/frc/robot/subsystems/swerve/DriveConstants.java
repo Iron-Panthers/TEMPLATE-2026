@@ -249,16 +249,6 @@ public class DriveConstants {
   public record HeadingControllerConstants(
       double kP, double kD, double maxVelocity, double maxAcceleration, double tolerance) {}
 
-  private enum Mk4iReductions {
-    MK4I_L3((50 / 14) * (16 / 28) * (45 / 15)),
-    STEER(150 / 7);
-
-    double reduction;
-
-    Mk4iReductions(double reduction) {
-      this.reduction = reduction;
-    }
-  }
 
   public record ApproachPose(Pose2d pose) {
     public static ApproachPose[] fromPose2ds(Pose2d... poses) {

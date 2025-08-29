@@ -1,6 +1,5 @@
 package frc.robot.subsystems.swerve;
 
-import static edu.wpi.first.units.Units.*;
 
 import frc.robot.subsystems.swerve.DriveConstants.ModuleConfig;
 import frc.robot.utility.PhoenixUtil;

@@ -26,38 +26,14 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.Mode;
 import frc.robot.Constants.RobotType;
-import frc.robot.commands.ApproachReef;
-import frc.robot.commands.ApproachReef.LevelOffsets;
 import frc.robot.commands.VibrateHIDCommand;
 import frc.robot.subsystems.canWatchdog.CANWatchdog;
 import frc.robot.subsystems.canWatchdog.CANWatchdogIO;
 import frc.robot.subsystems.canWatchdog.CANWatchdogIOComp;
-import frc.robot.subsystems.climb.Climb;
-import frc.robot.subsystems.climb.Climb.ClimbTarget;
-import frc.robot.subsystems.climb.ClimbController;
-import frc.robot.subsystems.climb.ClimbIO;
-import frc.robot.subsystems.climb.ClimbIOSim;
 import frc.robot.subsystems.rgb.RGB;
 import frc.robot.subsystems.rgb.RGB.RGBMessages;
 import frc.robot.subsystems.rgb.RGBIO;
 import frc.robot.subsystems.rgb.RGBIOCANdle;
-import frc.robot.subsystems.rollers.Rollers;
-import frc.robot.subsystems.rollers.Rollers.RollerState;
-import frc.robot.subsystems.rollers.intake.Intake;
-import frc.robot.subsystems.rollers.intake.IntakeIO;
-import frc.robot.subsystems.rollers.intake.IntakeIOSim;
-import frc.robot.subsystems.rollers.sensors.RollerSensorsIO;
-import frc.robot.subsystems.superstructure.Superstructure;
-import frc.robot.subsystems.superstructure.Superstructure.SuperstructureState;
-import frc.robot.subsystems.superstructure.elevator.Elevator;
-import frc.robot.subsystems.superstructure.elevator.ElevatorIO;
-import frc.robot.subsystems.superstructure.elevator.ElevatorIOSim;
-import frc.robot.subsystems.superstructure.pivot.Pivot;
-import frc.robot.subsystems.superstructure.pivot.PivotIO;
-import frc.robot.subsystems.superstructure.pivot.PivotIOSim;
-import frc.robot.subsystems.superstructure.tongue.Tongue;
-import frc.robot.subsystems.superstructure.tongue.TongueIO;
-import frc.robot.subsystems.superstructure.tongue.TongueIOSim;
 import frc.robot.subsystems.swerve.Drive;
 import frc.robot.subsystems.swerve.DriveConstants;
 import frc.robot.subsystems.swerve.GyroIO;
@@ -92,18 +68,10 @@ public class RobotContainer {
   private final CommandXboxController driverA = new CommandXboxController(0);
   private final CommandXboxController driverB = new CommandXboxController(1);
 
-  @AutoLogOutput(key = "CommandedOffset")
-  private LevelOffsets levelOffsets = LevelOffsets.PREP_L4_OFFSET;
-
-  private boolean eject = false;
-
-  private boolean autoAngle = true;
-
   private Drive swerve;
   private Vision vision;
   private RGB rgb;
   private CANWatchdog canWatchdog;
-  private ApproachReef approachReef;
 
   private SwerveDriveSimulation driveSimulation = null;
 
@@ -200,91 +168,9 @@ public class RobotContainer {
                       -driverA.getLeftY(),
                       -driverA.getLeftX(),
                       driverA.getLeftTriggerAxis() - driverA.getRightTriggerAxis(),
-                      superstructure.getElevatorPosition() > 3
-                          ? 3
-                          : DriveConstants.DRIVE_CONFIG.maxLinearAcceleration());
-                  if (Math.abs(driverA.getLeftTriggerAxis()) > 0.1
-                      || Math.abs(driverA.getRightTriggerAxis()) > 0.1) {
-                    swerve.clearHeadingControl();
-                  } else if (autoAngle) {
-                    // Station snaps
-                    if (RobotState.getInstance()
-                            .getEstimatedPose()
-                            .getTranslation()
-                            .getDistance(DriveConstants.RIGHT_CORNER)
-                        < 3) {
-                      swerve.setTargetHeading(new Rotation2d(Math.toRadians(232)));
-                    } else if (RobotState.getInstance()
-                            .getEstimatedPose()
-                            .getTranslation()
-                            .getDistance(DriveConstants.LEFT_CORNER)
-                        < 3) {
-                      swerve.setTargetHeading(new Rotation2d(Math.toRadians(128)));
-                      // close up reef snaps
-                    } else if (RobotState.getInstance()
-                            .getEstimatedPose()
-                            .getTranslation()
-                            .getDistance(DriveConstants.REEF_TRANSLATION2D)
-                        < 2) {
-                      swerve.setTargetHeading(
-                          DriverStation.getAlliance().isPresent()
-                                  && DriverStation.getAlliance().get() == Alliance.Red
-                              ? calculateSnapTargetHeading(
-                                  RobotState.getInstance()
-                                      .getEstimatedPose()
-                                      .getTranslation()
-                                      .minus(DriveConstants.REEF_TRANSLATION2D)
-                                      .getAngle())
-                              : FlippingUtil.flipFieldRotation(
-                                  calculateSnapTargetHeading(
-                                      RobotState.getInstance()
-                                          .getEstimatedPose()
-                                          .getTranslation()
-                                          .minus(DriveConstants.REEF_TRANSLATION2D)
-                                          .getAngle())));
-                      // climb snaps
-                    } else if (MathUtil.isNear(
-                            DriveConstants.CLIMB_ZONE_CENTER.getX(),
-                            RobotState.getInstance().getEstimatedPose().getTranslation().getX(),
-                            2)
-                        && MathUtil.isNear(
-                            DriveConstants.CLIMB_ZONE_CENTER.getY(),
-                            RobotState.getInstance().getEstimatedPose().getTranslation().getY(),
-                            2)
-                        && superstructure.getTargetState() == SuperstructureState.CLIMB) {
-                      swerve.setTargetHeading(new Rotation2d(Math.PI / 2));
-                      // default gradual far from reef snaps
-                    } else {
-                      swerve.setTargetHeading(
-                          RobotState.getInstance()
-                              .getEstimatedPose()
-                              .getTranslation()
-                              .minus(DriveConstants.REEF_TRANSLATION2D)
-                              .getAngle()
-                              .minus(
-                                  DriverStation.getAlliance().isPresent()
-                                          && DriverStation.getAlliance().get() == Alliance.Red
-                                      ? Rotation2d.kPi
-                                      : Rotation2d.kZero));
-                    }
-                  }
+                      DriveConstants.DRIVE_CONFIG.maxLinearAcceleration());
                 })
             .withName("Drive Teleop"));
-    //
-    new Trigger(
-            () -> (Math.abs(driverA.getRightY()) > 0.2) || (Math.abs(driverA.getRightX()) > 0.2))
-        .whileTrue(
-            new FunctionalCommand(
-                () -> {},
-                () ->
-                    swerve.setTargetHeading(
-                        calculateSnapTargetHeading(
-                            new Rotation2d(
-                                Math.atan2(
-                                    MathUtil.applyDeadband(-driverA.getRightX(), 0.1),
-                                    MathUtil.applyDeadband(-driverA.getRightY(), 0.1))))),
-                interrupted -> {},
-                () -> false));
 
     driverA.start().onTrue(swerve.zeroGyroCommand());
 

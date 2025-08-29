@@ -71,7 +71,7 @@ public class RobotContainer {
                   new ModuleIOTalonFXReal(DriveConstants.MODULE_CONFIGS[1]),
                   new ModuleIOTalonFXReal(DriveConstants.MODULE_CONFIGS[2]),
                   new ModuleIOTalonFXReal(DriveConstants.MODULE_CONFIGS[3]));
-        //   vision = new Vision(new VisionIOPhotonvision(4), new VisionIOPhotonvision(5));
+          //   vision = new Vision(new VisionIOPhotonvision(4), new VisionIOPhotonvision(5));
           rgb = new RGB(new RGBIOCANdle());
           canWatchdog = new CANWatchdog(new CANWatchdogIOComp(), rgb);
         }
@@ -122,7 +122,6 @@ public class RobotContainer {
       rgb = new RGB(new RGBIO() {});
     }
 
-
     nameCommands();
     configureAutos();
     configureBindings();
@@ -133,9 +132,7 @@ public class RobotContainer {
     canWatchdog.matchStarting();
   }
 
-  /**
-   * Use this method to define the named commands for all of the autos
-   */
+  /** Use this method to define the named commands for all of the autos */
   private void nameCommands() {
     // Register Command Names in this method
   }
@@ -225,8 +222,8 @@ public class RobotContainer {
   }
 
   public void updateDashboardStatus() {
-        // TODO: Define all of the dashboard outputs here
-        SmartDashboard.putString("Current Auto", autoChooser.get().getName());
+    // TODO: Define all of the dashboard outputs here
+    SmartDashboard.putString("Current Auto", autoChooser.get().getName());
   }
 
   public static double relativeAngularDifference(double currentAngle, double newAngle) {

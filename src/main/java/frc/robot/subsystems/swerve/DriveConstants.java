@@ -249,7 +249,6 @@ public class DriveConstants {
   public record HeadingControllerConstants(
       double kP, double kD, double maxVelocity, double maxAcceleration, double tolerance) {}
 
-
   public record ApproachPose(Pose2d pose) {
     public static ApproachPose[] fromPose2ds(Pose2d... poses) {
       List<ApproachPose> approachPoses = new ArrayList<ApproachPose>();

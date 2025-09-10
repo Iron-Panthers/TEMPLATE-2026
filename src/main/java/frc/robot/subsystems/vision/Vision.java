@@ -63,7 +63,8 @@ public class Vision extends SubsystemBase {
                 || (observation.tagCount() == 1 && observation.ambiguity() > AMBIGUITY_CUTOFF)
                 || (observation.ambiguity() == -1 && observation.tagCount() == 1)
                 || Math.abs(observation.estimatedPose().getZ())
-                    > Z_ERROR_CUTOFF // Must have realistic Z coordinate
+                    > Z_ERROR_CUTOFF // Must have realistic Z
+                // coordinate
 
                 // Must be within the field boundaries
                 || observation.estimatedPose().getX() < 0.0

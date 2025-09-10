@@ -76,15 +76,7 @@ public class VisionConstants {
   public static final AprilTagFieldLayout APRIL_TAG_FIELD_LAYOUT;
 
   static {
-    AprilTagFieldLayout layout;
-    try {
-      // layout = // old code for loading from a file
-      //     new AprilTagFieldLayout(
-      //         Paths.get(
-      //
-      // "src/main/java/frc/robot/subsystems/vision/april_tag_layouts/reefscape_apriltags.json")
-      //             .toAbsolutePath()
-      //             .toString());
+    // logic for dynamically setting the april tag field layout
       AprilTagFieldLayout defaultFieldLayout =
           AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
       List<AprilTag> aprilTags = defaultFieldLayout.getTags();
@@ -98,14 +90,9 @@ public class VisionConstants {
             }
             return false;
           });
-      layout =
+    APRIL_TAG_FIELD_LAYOUT = 
           new AprilTagFieldLayout(
               aprilTags, defaultFieldLayout.getFieldWidth(), defaultFieldLayout.getFieldWidth());
-    } catch (Exception e) {
-      System.err.println("Error loading custom AprilTag field layout: " + e.getMessage());
-      layout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
-    }
-    APRIL_TAG_FIELD_LAYOUT = layout;
   }
 
   public static record TagCountDeviation(

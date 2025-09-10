@@ -2,7 +2,7 @@
 
 package frc.robot;
 
-
+import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.RobotConfig;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -32,6 +32,8 @@ import frc.robot.subsystems.swerve.ModuleIOTalonFXSim;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonvisionSim;
+import frc.robot.utility.ElasticPID;
+import frc.robot.utility.SetSlot0Lambda;
 import java.util.function.BooleanSupplier;
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
@@ -221,9 +223,17 @@ public class RobotContainer {
                     new ParallelCommandGroup(new VibrateHIDCommand(driverB.getHID(), 3, 0.4))));
   }
 
+  ElasticPID elasticPID = new ElasticPID(ElasticPID.new ElasticPIDConstantsModules());
+
   public void updateDashboardStatus() {
     // TODO: Define all of the dashboard outputs here
     SmartDashboard.putString("Current Auto", autoChooser.get().getName());
+    if (!SmartDashboard.containsKey("kP")) {
+      SmartDashboard.putNumber("kP", 4.5);
+    }
+
+    elasticPID.periodic();
+    DriveConstants.updateDriveConstants();
   }
 
   public static double relativeAngularDifference(double currentAngle, double newAngle) {
@@ -242,5 +252,20 @@ public class RobotContainer {
         "FieldSimulation/Coral", SimulatedArena.getInstance().getGamePiecesArrayByType("Coral"));
     Logger.recordOutput(
         "FieldSimulation/Algae", SimulatedArena.getInstance().getGamePiecesArrayByType("Algae"));
+  }
+
+  public class ElasticPIDConstantsModules implements SetSlot0Lambda {
+    public void setSlot0(
+        double kP,
+        double kI,
+        double kD,
+        double kS,
+        double kV,
+        double kA,
+        double kG,
+        double motionMagicAcceleration,
+        double motionMagicCruiseVelocity,
+        double motionMagicJerk,
+        GravityTypeValue gravityTypeValue) {}
   }
 }

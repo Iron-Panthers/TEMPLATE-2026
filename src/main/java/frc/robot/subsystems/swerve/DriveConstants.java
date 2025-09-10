@@ -23,6 +23,7 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants;
 import frc.robot.subsystems.canWatchdog.CANWatchdogConstants.CAN;
 import java.util.ArrayList;
@@ -33,7 +34,7 @@ import org.ironmaple.simulation.drivesims.configs.SwerveModuleSimulationConfig;
 
 public class DriveConstants {
   // measures in meters (per sec) and radians (per sec)
-  public static final DrivebaseConfig DRIVE_CONFIG =
+  public static DrivebaseConfig DRIVE_CONFIG =
       switch (getRobotType()) {
         case COMP -> new DrivebaseConfig(
             Units.inchesToMeters(1.925),
@@ -52,6 +53,18 @@ public class DriveConstants {
             10,
             6);
       };
+
+  public static void updateDriveConstants() {
+    DRIVE_CONFIG =
+        new DrivebaseConfig(
+            Units.inchesToMeters(1.925),
+            Units.inchesToMeters(22.5),
+            Units.inchesToMeters(34),
+            Units.inchesToMeters(34),
+            SmartDashboard.getNumber("kP", 4.5),
+            10,
+            6);
+  }
 
   public static final Translation2d[] MODULE_TRANSLATIONS =
       new Translation2d[] {
@@ -248,7 +261,6 @@ public class DriveConstants {
   /* tolerance in degrees */
   public record HeadingControllerConstants(
       double kP, double kD, double maxVelocity, double maxAcceleration, double tolerance) {}
-
 
   public record ApproachPose(Pose2d pose) {
     public static ApproachPose[] fromPose2ds(Pose2d... poses) {

@@ -34,10 +34,9 @@ public class Drive extends SubsystemBase {
   private GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
   private Module[] modules = new Module[4];
 
-  @AutoLogOutput(key = "Swerve/ArbitraryYaw")
-  private Rotation2d arbitraryYaw = new Rotation2d();
+  private Rotation2d fieldRelativeYaw = new Rotation2d();
 
-  @AutoLogOutput(key = "Swerve/YawOffset")
+  @AutoLogOutput(key = "Swerve/GyroYawOffset")
   private Rotation2d gyroYawOffset = new Rotation2d();
 
   private ChassisSpeeds targetSpeeds = new ChassisSpeeds();
@@ -54,7 +53,7 @@ public class Drive extends SubsystemBase {
     modules[2] = new Module(bl, 2);
     modules[3] = new Module(br, 3);
 
-    teleopController = new TeleopController(() -> arbitraryYaw);
+    teleopController = new TeleopController(() -> fieldRelativeYaw);
   }
 
   @Override
@@ -63,7 +62,8 @@ public class Drive extends SubsystemBase {
     gyroIO.updateInputs(gyroInputs);
     Logger.processInputs("Swerve/Gyro", gyroInputs);
 
-    arbitraryYaw =
+    /** TODO: Make normalizing function */
+    fieldRelativeYaw =
         Rotation2d.fromDegrees(
             (gyroInputs.yawPosition.minus(gyroYawOffset).getDegrees() % 360 + 360) % 360);
 
@@ -76,6 +76,7 @@ public class Drive extends SubsystemBase {
         Arrays.stream(modules)
             .map(module -> module.getModulePosition())
             .toArray(SwerveModulePosition[]::new);
+
     RobotState.getInstance()
         .addOdometryMeasurement(
             new RobotState.OdometryMeasurement(
@@ -88,41 +89,40 @@ public class Drive extends SubsystemBase {
           // 0.0001 to make the wheels stop in a diamond shape instead of straight so they
           // do not
           // vibrate
+          // TODO: Make this a min statement and make comment better
           targetSpeeds.omegaRadiansPerSecond = headingController.update() + 0.0001;
         }
       }
       case TRAJECTORY -> {
         targetSpeeds = trajectorySpeeds;
+        // Only snap to heading during teleop
         if (headingController != null && DriverStation.isTeleopEnabled()) {
           setTargetHeading(RobotState.getInstance().getAlignPose().getRotation());
           targetSpeeds.omegaRadiansPerSecond = headingController.update() + 0.0001;
         }
-        // add heading controll override
       }
     }
     RobotState.getInstance().addRobotSpeeds(getRobotSpeeds());
     // run modules
-
+    // TODO: Understand what this does
     /* use kinematics to get desired module states */
     ChassisSpeeds discretizedSpeeds =
         ChassisSpeeds.discretize(targetSpeeds, Constants.PERIODIC_LOOP_SEC);
 
     SwerveModuleState[] moduleTargetStates = KINEMATICS.toSwerveModuleStates(discretizedSpeeds);
-    // SwerveDriveKinematics.desaturateWheelSpeeds(
-    // moduleTargetStates, DRIVE_CONFIG.maxLinearVelocity()); //We assume module
-    // will limit
 
     for (int i = 0; i < modules.length; i++) {
       modules[i].runToSetpoint(moduleTargetStates[i]);
     }
-    Logger.recordOutput("Swerve/ModuleStates", moduleTargetStates);
+
+    Logger.recordOutput("Swerve/ModuleTargetStates", moduleTargetStates);
     Logger.recordOutput("Swerve/TargetSpeeds", targetSpeeds);
     Logger.recordOutput("Swerve/DriveMode", driveMode);
     Logger.recordOutput(
         "Swerve/Magnitude",
         MathUtil.clamp(
             Math.hypot(targetSpeeds.vxMetersPerSecond, targetSpeeds.vyMetersPerSecond), 0, 3));
-    Logger.recordOutput("Swerve/ArbitraryYaw", arbitraryYaw);
+    Logger.recordOutput("Swerve/FieldRelativeYaw", fieldRelativeYaw);
     Logger.recordOutput("Swerve/TrajectorySpeeds", trajectorySpeeds);
     if (headingController != null) {
       Logger.recordOutput(
@@ -148,6 +148,7 @@ public class Drive extends SubsystemBase {
 
   private void zeroGyro() {
     gyroYawOffset = gyroInputs.yawPosition;
+    // Will be reinitialized in setTargetHeading
     headingController = null;
   }
 
@@ -180,14 +181,12 @@ public class Drive extends SubsystemBase {
     return KINEMATICS.toChassisSpeeds(getModuleStates());
   }
 
-  public double setTargetHeading(Rotation2d targetHeading) {
+  public void setTargetHeading(Rotation2d targetHeading) {
     if (headingController == null) {
-      headingController = new HeadingController(() -> arbitraryYaw, targetHeading);
+      headingController = new HeadingController(() -> fieldRelativeYaw, targetHeading);
     } else {
       headingController.setTargeHeading(targetHeading);
     }
-
-    return targetHeading.getRadians();
   }
 
   public void clearHeadingControl() {

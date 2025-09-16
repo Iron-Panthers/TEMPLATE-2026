@@ -62,10 +62,9 @@ public class Drive extends SubsystemBase {
     gyroIO.updateInputs(gyroInputs);
     Logger.processInputs("Swerve/Gyro", gyroInputs);
 
-    /** TODO: Make normalizing function */
     fieldRelativeYaw =
         Rotation2d.fromDegrees(
-            (gyroInputs.yawPosition.minus(gyroYawOffset).getDegrees() % 360 + 360) % 360);
+            normalizeDegrees(gyroInputs.yawPosition.minus(gyroYawOffset).getDegrees()));
 
     for (Module module : modules) {
       module.updateInputs();
@@ -86,11 +85,11 @@ public class Drive extends SubsystemBase {
       case TELEOP -> {
         targetSpeeds = teleopController.update();
         if (headingController != null) {
-          // 0.0001 to make the wheels stop in a diamond shape instead of straight so they
-          // do not
+          // 0.0001 to make the wheels stop in a diamond shape instead of straight so they do not
           // vibrate
-          // TODO: Make this a min statement and make comment better
-          targetSpeeds.omegaRadiansPerSecond = headingController.update() + 0.0001;
+          double rotationVelocity = headingController.update();
+          targetSpeeds.omegaRadiansPerSecond =
+              Math.abs(rotationVelocity) > 0.0001 ? rotationVelocity : 0.0001;
         }
       }
       case TRAJECTORY -> {
@@ -195,5 +194,9 @@ public class Drive extends SubsystemBase {
 
   public boolean isTeleop() {
     return driveMode == DriveModes.TELEOP;
+  }
+
+  public double normalizeDegrees(double degrees) {
+    return (degrees % 360 + 360) % 360;
   }
 }

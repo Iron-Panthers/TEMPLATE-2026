@@ -3,16 +3,22 @@ package frc.robot.lib.generic_subsystems.superstructure;
 import java.util.Optional;
 import org.littletonrobotics.junction.Logger;
 
+import edu.wpi.first.units.Unit;
+
 public abstract class GenericSuperstructure<G extends GenericSuperstructure.PositionTarget> {
   public interface PositionTarget {
-    double getPosition();
+    double getPosition(); // TODO: make this a consistant unit
 
+    /**
+     * Retrieves the tolerance value
+     *
+     * @return The tolerance value as a double.
+     */
     double getEpsilon();
   }
 
   public enum ControlMode {
     POSITION,
-    POSITION_MANUAL,
     STOP;
   }
 
@@ -20,8 +26,6 @@ public abstract class GenericSuperstructure<G extends GenericSuperstructure.Posi
 
   protected final String name;
   protected final GenericSuperstructureIO superstructureIO;
-
-  private Optional<Double> positionTargetManual = Optional.empty();
 
   private GenericSuperstructureIOInputsAutoLogged inputs =
       new GenericSuperstructureIOInputsAutoLogged();
@@ -41,9 +45,6 @@ public abstract class GenericSuperstructure<G extends GenericSuperstructure.Posi
     switch (controlMode) {
       case POSITION -> {
         superstructureIO.runPosition(positionTarget.getPosition());
-      }
-      case POSITION_MANUAL -> {
-        positionTargetManual.ifPresent(superstructureIO::runPosition);
       }
       case STOP -> {
         superstructureIO.stop();
@@ -66,24 +67,18 @@ public abstract class GenericSuperstructure<G extends GenericSuperstructure.Posi
     this.positionTarget = positionTarget;
   }
 
-  public void setPositionTargetManual(double position) {
-    setControlMode(ControlMode.POSITION_MANUAL);
-    positionTargetManual = Optional.of(position);
-  }
 
   public ControlMode getControlMode() {
     return controlMode;
   }
 
   public void setControlMode(ControlMode controlMode) {
-    if (controlMode == ControlMode.POSITION_MANUAL) {
-      positionTargetManual = Optional.of(inputs.positionRotations);
-    } else {
-      positionTargetManual = Optional.empty();
-    }
     this.controlMode = controlMode;
   }
 
+  /**
+   * This is the zeroing function for the subsystem.
+   */
   public void setOffset() {
     superstructureIO.setOffset();
   }

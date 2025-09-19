@@ -223,6 +223,7 @@ public class DriveConstants {
       double maxAngularVelocity,
       double maxLinearAcceleration) {}
 
+  // TODO: Make inverted values InvertedValues objects
   public record ModuleConfig(
       int driveID,
       int steerID,

@@ -82,7 +82,7 @@ public abstract class GenericSuperstructureIOTalonFX implements GenericSuperstru
                           .withMagnetOffset(superstructureConfig.canCoderOffset)));
       config.Feedback.withRemoteCANcoder(canCoder);
     }
-
+    // TODO: Do we need to try until OK?
     talon.getConfigurator().apply(config);
     setOffset();
     talon.setNeutralMode(NeutralModeValue.Brake);

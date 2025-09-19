@@ -13,7 +13,6 @@ import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
-import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
@@ -63,10 +62,7 @@ public abstract class ModuleIOTalonFX implements ModuleIO {
 
     driveConfig.Feedback.SensorToMechanismRatio = MODULE_CONSTANTS.driveReduction();
     driveConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-    driveConfig.MotorOutput.Inverted =
-        config.driveInverted()
-            ? InvertedValue.Clockwise_Positive
-            : InvertedValue.CounterClockwise_Positive;
+    driveConfig.MotorOutput.Inverted = config.driveInverted();
 
     setDriveSlot0(MODULE_CONSTANTS.driveGains());
 
@@ -78,10 +74,7 @@ public abstract class ModuleIOTalonFX implements ModuleIO {
     steerConfig.CurrentLimits.StatorCurrentLimitEnable = true;
 
     steerConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-    steerConfig.MotorOutput.Inverted =
-        config.steerInverted()
-            ? InvertedValue.Clockwise_Positive
-            : InvertedValue.CounterClockwise_Positive;
+    steerConfig.MotorOutput.Inverted = config.steerInverted();
 
     steerConfig.ClosedLoopGeneral.ContinuousWrap = true;
     steerConfig.Feedback.FeedbackRemoteSensorID = config.encoderID();

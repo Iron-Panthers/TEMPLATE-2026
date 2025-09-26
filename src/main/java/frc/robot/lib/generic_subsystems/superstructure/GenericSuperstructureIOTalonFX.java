@@ -68,7 +68,7 @@ public abstract class GenericSuperstructureIOTalonFX implements GenericSuperstru
 
     talon = new TalonFX(superstructureConfig.id);
 
-    if (superstructureConfig.canCoderID != 0) { // TODO: Make default -1 or use Optional
+    if (superstructureConfig.canCoderID != -1) { // TODO: Make default -1 or use Optional
       CANcoder canCoder = new CANcoder(superstructureConfig.canCoderID);
       canCoder
           .getConfigurator()

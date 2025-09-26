@@ -9,10 +9,10 @@ public class GenericSuperstructureConfiguration {
    * Non-zero ID of mechanism motor
    *
    * <ul>
-   *   <li><b>Default Value:</b> 0
+   *   <li><b>Default Value:</b> -1
    * </ul>
    */
-  public int id = 0;
+  public int id = -1;
 
   /**
    * Non-zero ID of mechanism motor
@@ -88,7 +88,7 @@ public class GenericSuperstructureConfiguration {
    * The non-zero ID for a CANCoder. The Talon will update its position and velocity whenever
    * CANcoder publishes its information on CAN bus, and the Talon internal rotor will not be used.
    */
-  public int canCoderID = 0;
+  public int canCoderID = -1;
 
   /**
    * The non-zero ID for a CANCoder. The Talon will update its position and velocity whenever

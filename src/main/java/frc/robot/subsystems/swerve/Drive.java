@@ -104,6 +104,11 @@ public class Drive extends SubsystemBase {
     RobotState.getInstance().addRobotSpeeds(getRobotSpeeds());
     // run modules
     // TODO: Understand what this does
+    //it basically uses inverse kinematics, which means it finds the state the robot needs
+    //to get to the desired "discretizedspeeds" by using the tips, not the joints.
+    //So basically, normal kinematics uses the joints, but our robot has multiple joints. So, we need to use
+    //inverse kinematics, which only moves the tip of whatever you are moving, to then let the system
+    //calculate the movement of the joints. 
     /* use kinematics to get desired module states */
     ChassisSpeeds discretizedSpeeds =
         ChassisSpeeds.discretize(targetSpeeds, Constants.PERIODIC_LOOP_SEC);

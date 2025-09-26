@@ -37,7 +37,6 @@ public abstract class GenericSuperstructureIOTalonFX implements GenericSuperstru
   // zeroing stuff
   private final double zeroingVolts;
   private final double zeroingOffset;
-  private final double zeroingVoltageThreshold; // TODO: get rid of
 
   protected final VoltageOut voltageOutput = new VoltageOut(0).withUpdateFreqHz(0);
   private final NeutralOut neutralOutput = new NeutralOut();
@@ -46,11 +45,10 @@ public abstract class GenericSuperstructureIOTalonFX implements GenericSuperstru
   /** Constructs a new GenericSuperstructureIOTalonFX. */
   public GenericSuperstructureIOTalonFX(GenericSuperstructureConfiguration superstructureConfig) {
     /* set the zeroing values such that when the robot zeros it will apply the
-    * zeroing volts and when it reaches a resistance from part of the mechanism, it
-    * sets the position to the zeroing offset */
+     * zeroing volts and when it reaches a resistance from part of the mechanism, it
+     * sets the position to the zeroing offset */
     this.zeroingVolts = superstructureConfig.zeroingVolts;
     this.zeroingOffset = superstructureConfig.zeroingOffset;
-    this.zeroingVoltageThreshold = superstructureConfig.zeroingVoltageThreshold;
 
     // VOLTAGE, LIMITS AND RATIO CONFIG
     config.MotorOutput.Inverted = superstructureConfig.motorDirection;
@@ -101,9 +99,10 @@ public abstract class GenericSuperstructureIOTalonFX implements GenericSuperstru
 
   @Override
   public void updateInputs(GenericSuperstructureIOInputs inputs) {
-    inputs.isConnected = BaseStatusSignal.refreshAll(
-        positionRotations, velocityRPS, appliedVolts, supplyCurrent, temp)
-        .isOK();
+    inputs.isConnected =
+        BaseStatusSignal.refreshAll(
+                positionRotations, velocityRPS, appliedVolts, supplyCurrent, temp)
+            .isOK();
     inputs.positionRotations = positionRotations.getValueAsDouble();
     inputs.velocityRotPerSec = velocityRPS.getValueAsDouble();
     inputs.appliedVolts = appliedVolts.getValueAsDouble();

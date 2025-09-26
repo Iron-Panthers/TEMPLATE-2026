@@ -1,9 +1,6 @@
 package frc.robot.lib.generic_subsystems.superstructure;
 
-import java.util.Optional;
 import org.littletonrobotics.junction.Logger;
-
-import edu.wpi.first.units.Unit;
 
 public abstract class GenericSuperstructure<G extends GenericSuperstructure.PositionTarget> {
   public interface PositionTarget {
@@ -67,7 +64,6 @@ public abstract class GenericSuperstructure<G extends GenericSuperstructure.Posi
     this.positionTarget = positionTarget;
   }
 
-
   public ControlMode getControlMode() {
     return controlMode;
   }
@@ -76,9 +72,7 @@ public abstract class GenericSuperstructure<G extends GenericSuperstructure.Posi
     this.controlMode = controlMode;
   }
 
-  /**
-   * This is the zeroing function for the subsystem.
-   */
+  /** This is the zeroing function for the subsystem. */
   public void setOffset() {
     superstructureIO.setOffset();
   }

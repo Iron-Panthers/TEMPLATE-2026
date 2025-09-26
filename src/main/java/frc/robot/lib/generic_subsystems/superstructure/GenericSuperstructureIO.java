@@ -15,21 +15,7 @@ public interface GenericSuperstructureIO {
     public boolean isZeroing = false;
   }
 
-  // TODO: Remove jank solution :O
-  @AutoLog
-  class GenericSuperstructureIOInputsMotor2 {
-    public boolean connected2 = true;
-    public double positionRotations2 = 0;
-    public double velocityRotPerSec2 = 0;
-    public double appliedVolts2 = 0;
-    public double supplyCurrentAmps2 = 0;
-    public double tempCelsius2 = 0;
-  }
-
   default void updateInputs(GenericSuperstructureIOInputs inputs) {}
-
-  // TODO: change (look at above comment) / delete
-  default void updateSecondaryInputs(GenericSuperstructureIOInputsMotor2 inputs) {}
 
   default void runPosition(double position) {}
 

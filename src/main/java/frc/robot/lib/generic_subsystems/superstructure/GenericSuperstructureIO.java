@@ -6,28 +6,16 @@ import org.littletonrobotics.junction.AutoLog;
 public interface GenericSuperstructureIO {
   @AutoLog
   class GenericSuperstructureIOInputs {
-    public boolean connected = true;
+    public boolean isConnected = true;
     public double positionRotations = 0;
     public double velocityRotPerSec = 0;
     public double appliedVolts = 0;
     public double supplyCurrentAmps = 0;
     public double tempCelsius = 0;
-    public boolean zeroing = false;
-  }
-
-  @AutoLog
-  class GenericSuperstructureIOInputsMotor2 {
-    public boolean connected2 = true;
-    public double positionRotations2 = 0;
-    public double velocityRotPerSec2 = 0;
-    public double appliedVolts2 = 0;
-    public double supplyCurrentAmps2 = 0;
-    public double tempCelsius2 = 0;
+    public boolean isZeroing = false;
   }
 
   default void updateInputs(GenericSuperstructureIOInputs inputs) {}
-
-  default void updateSecondaryInputs(GenericSuperstructureIOInputsMotor2 inputs) {}
 
   default void runPosition(double position) {}
 

@@ -77,22 +77,22 @@ public class VisionConstants {
 
   static {
     // logic for dynamically setting the april tag field layout
-      AprilTagFieldLayout defaultFieldLayout =
-          AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
-      List<AprilTag> aprilTags = defaultFieldLayout.getTags();
-      // remove ignored tags
-      aprilTags.removeIf(
-          tag -> {
-            for (int ignoreTag : IGNORE_TAGS) {
-              if (tag.ID == ignoreTag) {
-                return true;
-              }
+    AprilTagFieldLayout defaultFieldLayout =
+        AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
+    List<AprilTag> aprilTags = defaultFieldLayout.getTags();
+    // remove ignored tags
+    aprilTags.removeIf(
+        tag -> {
+          for (int ignoreTag : IGNORE_TAGS) {
+            if (tag.ID == ignoreTag) {
+              return true;
             }
-            return false;
-          });
-    APRIL_TAG_FIELD_LAYOUT = 
-          new AprilTagFieldLayout(
-              aprilTags, defaultFieldLayout.getFieldWidth(), defaultFieldLayout.getFieldWidth());
+          }
+          return false;
+        });
+    APRIL_TAG_FIELD_LAYOUT =
+        new AprilTagFieldLayout(
+            aprilTags, defaultFieldLayout.getFieldWidth(), defaultFieldLayout.getFieldWidth());
   }
 
   public static record TagCountDeviation(

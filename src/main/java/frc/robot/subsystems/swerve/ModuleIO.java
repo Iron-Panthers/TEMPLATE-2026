@@ -7,7 +7,7 @@ import org.littletonrobotics.junction.AutoLog;
 
 public interface ModuleIO {
 
-  // FIXME convert to wpilib units
+  // TODO: convert to wpilib units
   @AutoLog
   class ModuleIOInputs {
     public boolean driveMotorConnected = true;
@@ -21,6 +21,7 @@ public interface ModuleIO {
     public double driveSupplyCurrent = 0;
     public double driveStatorCurrent = 0;
 
+    // TODO: Check if this is at all different from steerPosition
     public Rotation2d steerAbsolutePostion = new Rotation2d();
     public Rotation2d steerPosition = new Rotation2d();
     public double steerVelocityRadsPerSec = 0;
@@ -39,9 +40,9 @@ public interface ModuleIO {
 
   default void runSteerPositionSetpoint(double angleRads) {}
 
-  default void setDriveGains(Gains gains) {}
+  default void setDriveSlot0(Gains gains) {}
 
-  default void setSteerGains(Gains gains, MotionProfileGains motionProfileGains) {}
+  default void setSteerSlot0(Gains gains, MotionProfileGains motionProfileGains) {}
 
   default void stop() {}
 }

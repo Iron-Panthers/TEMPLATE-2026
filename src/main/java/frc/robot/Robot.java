@@ -108,6 +108,7 @@ public class Robot extends LoggedRobot {
   /** This function is called periodically during all modes. */
   @Override
   public void robotPeriodic() {
+    /** TODO: Is this necessary? */
     Threads.setCurrentThreadPriority(true, 99);
 
     CommandScheduler.getInstance().run();
@@ -148,6 +149,7 @@ public class Robot extends LoggedRobot {
   /** This function is called once when teleop is enabled. */
   @Override
   public void teleopInit() {
+    /** TODO: Is this necessary? Does it work? */
     if (!matchStartingMethodCalled) {
       matchStartingMethodCalled = true;
       robotContainer.containerMatchStarting();

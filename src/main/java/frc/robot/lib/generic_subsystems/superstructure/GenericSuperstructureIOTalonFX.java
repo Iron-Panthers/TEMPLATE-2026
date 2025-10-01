@@ -21,10 +21,13 @@ import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
 
 public abstract class GenericSuperstructureIOTalonFX implements GenericSuperstructureIO {
+  // Talon FX Motor
   protected final TalonFX talon;
 
+  // Motor config
   protected final TalonFXConfiguration config = new TalonFXConfiguration();
 
+  // status signals
   private final StatusSignal<Angle> positionRotations;
   private final StatusSignal<AngularVelocity> velocityRPS;
   private final StatusSignal<Voltage> appliedVolts;
@@ -34,7 +37,6 @@ public abstract class GenericSuperstructureIOTalonFX implements GenericSuperstru
   // zeroing stuff
   private final double zeroingVolts;
   private final double zeroingOffset;
-  private final double zeroingVoltageThreshold;
 
   protected final VoltageOut voltageOutput = new VoltageOut(0).withUpdateFreqHz(0);
   private final NeutralOut neutralOutput = new NeutralOut();
@@ -42,14 +44,11 @@ public abstract class GenericSuperstructureIOTalonFX implements GenericSuperstru
 
   /** Constructs a new GenericSuperstructureIOTalonFX. */
   public GenericSuperstructureIOTalonFX(GenericSuperstructureConfiguration superstructureConfig) {
-    // set the zeroing values such tha when the robot zeros it will apply the
-    // zeroing volts and
-    // when it reaches a resistance from part of the mechanism, it sets the position
-    // to the zeroing
-    // Offset
+    /* set the zeroing values such that when the robot zeros it will apply the
+     * zeroing volts and when it reaches a resistance from part of the mechanism, it
+     * sets the position to the zeroing offset */
     this.zeroingVolts = superstructureConfig.zeroingVolts;
     this.zeroingOffset = superstructureConfig.zeroingOffset;
-    this.zeroingVoltageThreshold = superstructureConfig.zeroingVoltageThreshold;
 
     // VOLTAGE, LIMITS AND RATIO CONFIG
     config.MotorOutput.Inverted = superstructureConfig.motorDirection;
@@ -69,7 +68,7 @@ public abstract class GenericSuperstructureIOTalonFX implements GenericSuperstru
 
     talon = new TalonFX(superstructureConfig.id);
 
-    if (superstructureConfig.canCoderID != 0) {
+    if (superstructureConfig.canCoderID != -1) { // TODO: Make default -1 or use Optional
       CANcoder canCoder = new CANcoder(superstructureConfig.canCoderID);
       canCoder
           .getConfigurator()
@@ -82,7 +81,7 @@ public abstract class GenericSuperstructureIOTalonFX implements GenericSuperstru
                           .withMagnetOffset(superstructureConfig.canCoderOffset)));
       config.Feedback.withRemoteCANcoder(canCoder);
     }
-
+    // TODO: Do we need to try until OK?
     talon.getConfigurator().apply(config);
     setOffset();
     talon.setNeutralMode(NeutralModeValue.Brake);
@@ -100,7 +99,7 @@ public abstract class GenericSuperstructureIOTalonFX implements GenericSuperstru
 
   @Override
   public void updateInputs(GenericSuperstructureIOInputs inputs) {
-    inputs.connected =
+    inputs.isConnected =
         BaseStatusSignal.refreshAll(
                 positionRotations, velocityRPS, appliedVolts, supplyCurrent, temp)
             .isOK();
@@ -131,6 +130,21 @@ public abstract class GenericSuperstructureIOTalonFX implements GenericSuperstru
     talon.getConfigurator().setPosition(zeroingOffset);
   }
 
+  /**
+   * Sets all of the PID and motion magic gains.
+   *
+   * @param kP Proportional gain
+   * @param kI Integral gain
+   * @param kD Derivative gain
+   * @param kS Static gain
+   * @param kV Velocity gain
+   * @param kA Acceleration gain
+   * @param kG Gravity gain
+   * @param motionMagicAcceleration Motion magic acceleration (rotations per second squared)
+   * @param motionMagicCruiseVelocity Motion magic cruise velocity (rotations per second)
+   * @param motionMagicJerk Motion magic jerk (rotations per second cubed)
+   * @param gravityTypeValue Gravity compensation type
+   */
   @Override
   public void setSlot0(
       double kP,

@@ -362,4 +362,19 @@ public class GenericSuperstructureConfiguration {
     this.zeroingOffset = zeroingOffset;
     return this;
   }
+  /** Sensor discontinuity */
+  public double sensorDiscontinuityPoint = 0.5;
+
+  /**
+   * Sensor discontinuity
+   *
+   * @return itself
+   */
+  public GenericSuperstructureConfiguration withSensorDiscontinuityPoint(
+      double sensorDiscontinuityPoint) {
+    this.sensorDiscontinuityPoint = sensorDiscontinuityPoint;
+    return this;
+  }
+
+  
 }

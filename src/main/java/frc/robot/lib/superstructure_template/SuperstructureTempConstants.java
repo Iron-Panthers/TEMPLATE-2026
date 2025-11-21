@@ -11,29 +11,32 @@ import frc.robot.Constants;
 import frc.robot.subsystems.canWatchdog.CANWatchdogConstants.CAN;
 
 public class SuperstructureTempConstants {
-    //TODO: Change values
-    public static final SuperstructureTempConfig SUPERSTRUCTURE_TEMP_CONFIG =
-        switch (Constants.getRobotType()) {
-          case COMP -> new SuperstructureTempConfig(CAN.at(0, "insertNameHere"), CAN.at(0, "insertNameHere Encoder"), 0, 0);
-          case SIM -> new SuperstructureTempConfig(CAN.at(0, "insertNameHere"), CAN.at(0, "insertNameHere Encoder"), 0, 0);
-          default -> new SuperstructureTempConfig(0, 0, 0, 0);
-        };
-    //TODO: Change values
-    public static final PIDGains GAINS =
-        switch (Constants.getRobotType()) {
-          case COMP -> new PIDGains(0, 0, 0, 0, 0, 0, 0);
-          case SIM -> new PIDGains(0, 0, 0, 0, 0, 0, 0);
-          default -> new PIDGains(0, 0, 0, 0, 0, 0, 0);
-        };
-    //TODO: Change values
-    public static final MotionMagicConfig MOTION_MAGIC_CONFIG =
-        switch (Constants.getRobotType()) {
-          case COMP -> new MotionMagicConfig(0, 0);
-          case SIM -> new MotionMagicConfig(0, 0);
-          default -> new MotionMagicConfig(0, 0);
-        };
+  // TODO: Change values
+  public static final SuperstructureTempConfig SUPERSTRUCTURE_TEMP_CONFIG =
+      switch (Constants.getRobotType()) {
+        case COMP -> new SuperstructureTempConfig(
+            CAN.at(0, "insertNameHere"), CAN.at(0, "insertNameHere Encoder"), 0, 0);
+        case SIM -> new SuperstructureTempConfig(
+            CAN.at(0, "insertNameHere"), CAN.at(0, "insertNameHere Encoder"), 0, 0);
+        default -> new SuperstructureTempConfig(0, 0, 0, 0);
+      };
+  // TODO: Change values
+  public static final PIDGains GAINS =
+      switch (Constants.getRobotType()) {
+        case COMP -> new PIDGains(0, 0, 0, 0, 0, 0, 0);
+        case SIM -> new PIDGains(0, 0, 0, 0, 0, 0, 0);
+        default -> new PIDGains(0, 0, 0, 0, 0, 0, 0);
+      };
+  // TODO: Change values
+  public static final MotionMagicConfig MOTION_MAGIC_CONFIG =
+      switch (Constants.getRobotType()) {
+        case COMP -> new MotionMagicConfig(0, 0);
+        case SIM -> new MotionMagicConfig(0, 0);
+        default -> new MotionMagicConfig(0, 0);
+      };
 
-  public record SuperstructureTempConfig(int motorID, int canCoderID, double canCoderOffset, double reduction) {}
+  public record SuperstructureTempConfig(
+      int motorID, int canCoderID, double canCoderOffset, double reduction) {}
 
   public record PIDGains(
       double kP, double kI, double kD, double kS, double kV, double kA, double kG) {}
@@ -44,16 +47,19 @@ public class SuperstructureTempConstants {
 
   public static final InvertedValue MOTOR_DIRECTION = InvertedValue.CounterClockwise_Positive;
 
-  public static final double POSITION_TARGET_EPSILON = 0; //TODO: Change value
+  public static final SensorDirectionValue CANCODER_DIRECTION =
+      SensorDirectionValue.Clockwise_Positive;
+
+  public static final double POSITION_TARGET_EPSILON = 0; // TODO: Change value
 
   // CURRENT LIMITS
-  //TODO: Change following values below
+  // TODO: Change following values below
   public static final double UPPER_VOLT_LIMIT = 0;
   public static final double LOWER_VOLT_LIMIT = 0;
   public static final double SUPPLY_CURRENT_LIMIT = 0;
 
   // ARM POSITION CONSTANTS
-  //TODO: Change values of inchesToMeters
+  // TODO: Change values of inchesToMeters
   public static final Transform3d ELEVATOR_TO_ARM_TRANSFORM3D =
       new Transform3d(
           new Translation3d(

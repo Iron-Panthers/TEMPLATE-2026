@@ -4,7 +4,8 @@ import static frc.robot.lib.superstructure_template.SuperstructureTempConstants.
 
 import frc.robot.lib.generic_subsystems.superstructure.*;
 
-public class SuperstructureTempIOTalonFX extends GenericSuperstructureIOTalonFX implements SuperstructureTempIO {
+public class SuperstructureTempIOTalonFX extends GenericSuperstructureIOTalonFX
+    implements SuperstructureTempIO {
 
   public SuperstructureTempIOTalonFX() {
     super(

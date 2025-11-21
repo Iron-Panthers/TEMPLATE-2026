@@ -3,8 +3,7 @@ package frc.robot.lib.superstructure_template;
 import frc.robot.lib.generic_subsystems.superstructure.*;
 import org.littletonrobotics.junction.Logger;
 
-public class SuperstructureTemp
-    extends GenericSuperstructure<SuperstructureTemp.SuperstructureTempTarget> {
+public class SuperstructureTemp extends GenericSuperstructure<SuperstructureTemp.SuperstructureTempTarget> {
   public enum SuperstructureTempTarget implements GenericSuperstructure.PositionTarget {
     TOP(0); // TODO: put actual values
 

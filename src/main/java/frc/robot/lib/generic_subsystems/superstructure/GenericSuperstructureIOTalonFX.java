@@ -32,11 +32,13 @@ public abstract class GenericSuperstructureIOTalonFX implements GenericSuperstru
   private final StatusSignal<AngularVelocity> velocityRPS;
   private final StatusSignal<Voltage> appliedVolts;
   private final StatusSignal<Current> supplyCurrent;
+  private final StatusSignal<Current> statorCurrent;
   private final StatusSignal<Temperature> temp;
 
   // zeroing stuff
   private final double zeroingVolts;
-  private final double zeroingOffset;
+  protected final double zeroingOffset;
+  private final double zeroingVoltageThreshold;
 
   protected final VoltageOut voltageOutput = new VoltageOut(0).withUpdateFreqHz(0);
   private final NeutralOut neutralOutput = new NeutralOut();
@@ -49,6 +51,7 @@ public abstract class GenericSuperstructureIOTalonFX implements GenericSuperstru
      * sets the position to the zeroing offset */
     this.zeroingVolts = superstructureConfig.zeroingVolts;
     this.zeroingOffset = superstructureConfig.zeroingOffset;
+    this.zeroingVoltageThreshold = superstructureConfig.zeroingVoltageThreshold;
 
     // VOLTAGE, LIMITS AND RATIO CONFIG
     config.MotorOutput.Inverted = superstructureConfig.motorDirection;
@@ -59,13 +62,18 @@ public abstract class GenericSuperstructureIOTalonFX implements GenericSuperstru
     config.Voltage.withPeakReverseVoltage(superstructureConfig.lowerExtensionLimit);
     config.Feedback.withSensorToMechanismRatio(superstructureConfig.reduction);
 
-    config.SoftwareLimitSwitch.withReverseSoftLimitEnable(true);
-    config.SoftwareLimitSwitch.withReverseSoftLimitThreshold(
-        superstructureConfig.lowerExtensionLimit);
-    config.SoftwareLimitSwitch.withReverseSoftLimitEnable(true);
-    config.SoftwareLimitSwitch.withReverseSoftLimitThreshold(
-        superstructureConfig.upperExtensionLimit);
-
+    if (superstructureConfig.lowerExtensionLimitEnabled) {
+      config.SoftwareLimitSwitch.withReverseSoftLimitEnable(
+          superstructureConfig.lowerExtensionLimitEnabled);
+      config.SoftwareLimitSwitch.withReverseSoftLimitThreshold(
+          superstructureConfig.lowerExtensionLimit);
+    }
+    if (superstructureConfig.upperExtensionLimitEnabled) {
+      config.SoftwareLimitSwitch.withForwardSoftLimitEnable(
+          superstructureConfig.upperExtensionLimitEnabled);
+      config.SoftwareLimitSwitch.withForwardSoftLimitThreshold(
+          superstructureConfig.upperExtensionLimit);
+    }
     talon = new TalonFX(superstructureConfig.id);
 
     if (superstructureConfig.canCoderID != -1) { // TODO: Make default -1 or use Optional
@@ -90,6 +98,7 @@ public abstract class GenericSuperstructureIOTalonFX implements GenericSuperstru
     velocityRPS = talon.getVelocity();
     appliedVolts = talon.getMotorVoltage();
     supplyCurrent = talon.getSupplyCurrent();
+    statorCurrent = talon.getStatorCurrent();
     temp = talon.getDeviceTemp();
     positionRotations = talon.getPosition();
 
@@ -107,6 +116,7 @@ public abstract class GenericSuperstructureIOTalonFX implements GenericSuperstru
     inputs.velocityRotPerSec = velocityRPS.getValueAsDouble();
     inputs.appliedVolts = appliedVolts.getValueAsDouble();
     inputs.supplyCurrentAmps = supplyCurrent.getValueAsDouble();
+    inputs.statorCurrent = statorCurrent.getValueAsDouble();
     inputs.tempCelsius = temp.getValueAsDouble();
   }
 

@@ -362,4 +362,41 @@ public class GenericSuperstructureConfiguration {
     this.zeroingOffset = zeroingOffset;
     return this;
   }
+
+  /**
+   * Voltage threshold to determine if the mechanism has reached the zeroing position.
+   *
+   * <ul>
+   *   <li><b>Default Value:</b> 0
+   * </ul>
+   */
+  public double zeroingVoltageThreshold = 0;
+
+  /**
+   * Voltage threshold to determine if the mechanism has reached the zeroing position.
+   *
+   * <ul>
+   *   <li><b>Default Value:</b> 0
+   * </ul>
+   *
+   * @return itself
+   */
+  public GenericSuperstructureConfiguration withZeroingVoltageThreshold(
+      double zeroingVoltageThreshold) {
+    this.zeroingVoltageThreshold = zeroingVoltageThreshold;
+    return this;
+  }
+  /** Sensor discontinuity */
+  public double sensorDiscontinuityPoint = 0.5;
+
+  /**
+   * Sensor discontinuity
+   *
+   * @return itself
+   */
+  public GenericSuperstructureConfiguration withSensorDiscontinuityPoint(
+      double sensorDiscontinuityPoint) {
+    this.sensorDiscontinuityPoint = sensorDiscontinuityPoint;
+    return this;
+  }
 }

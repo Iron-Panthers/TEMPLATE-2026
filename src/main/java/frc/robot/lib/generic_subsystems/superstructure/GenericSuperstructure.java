@@ -1,5 +1,6 @@
 package frc.robot.lib.generic_subsystems.superstructure;
 
+import java.util.Optional;
 import org.littletonrobotics.junction.Logger;
 
 public abstract class GenericSuperstructure<G extends GenericSuperstructure.PositionTarget> {
@@ -16,6 +17,7 @@ public abstract class GenericSuperstructure<G extends GenericSuperstructure.Posi
 
   public enum ControlMode {
     POSITION,
+    POSITION_MANUAL,
     STOP;
   }
 
@@ -24,9 +26,11 @@ public abstract class GenericSuperstructure<G extends GenericSuperstructure.Posi
   protected final String name;
   protected final GenericSuperstructureIO superstructureIO;
 
-  private GenericSuperstructureIOInputsAutoLogged inputs =
+  protected Optional<Double> positionTargetManual = Optional.empty();
+
+  protected GenericSuperstructureIOInputsAutoLogged inputs =
       new GenericSuperstructureIOInputsAutoLogged();
-  private G positionTarget;
+  protected G positionTarget;
 
   public GenericSuperstructure(String name, GenericSuperstructureIO superstructureIO) {
     this.name = name;
@@ -43,6 +47,11 @@ public abstract class GenericSuperstructure<G extends GenericSuperstructure.Posi
       case POSITION -> {
         superstructureIO.runPosition(positionTarget.getPosition());
       }
+      case POSITION_MANUAL -> {
+        if (positionTargetManual.isPresent()) {
+          superstructureIO.runPosition(positionTargetManual.get());
+        }
+      }
       case STOP -> {
         superstructureIO.stop();
       }
@@ -53,6 +62,8 @@ public abstract class GenericSuperstructure<G extends GenericSuperstructure.Posi
     Logger.recordOutput("Superstructure/" + name + "/Reached target", reachedTarget());
     Logger.recordOutput(
         "Superstructure/" + name + "/Target Position", positionTarget.getPosition());
+    Logger.recordOutput(
+        "Superstructure/" + name + "/Target Position Manual", positionTargetManual.orElse(0.0));
   }
 
   public G getPositionTarget() {
@@ -64,11 +75,21 @@ public abstract class GenericSuperstructure<G extends GenericSuperstructure.Posi
     this.positionTarget = positionTarget;
   }
 
+  public void setPositionTargetManual(double position) {
+    setControlMode(ControlMode.POSITION_MANUAL);
+    positionTargetManual = Optional.of(position);
+  }
+
   public ControlMode getControlMode() {
     return controlMode;
   }
 
   public void setControlMode(ControlMode controlMode) {
+    if (controlMode == ControlMode.POSITION_MANUAL) {
+      positionTargetManual = Optional.of(inputs.positionRotations);
+    } else {
+      positionTargetManual = Optional.empty();
+    }
     this.controlMode = controlMode;
   }
 
@@ -91,7 +112,12 @@ public abstract class GenericSuperstructure<G extends GenericSuperstructure.Posi
    * @return whether the subsystem has reached its position target
    */
   public boolean reachedTarget() {
-    return Math.abs(inputs.positionRotations - (positionTarget.getPosition()))
-        <= positionTarget.getEpsilon();
+    double targetPosition =
+        switch (controlMode) {
+          case POSITION -> positionTarget.getPosition();
+          case POSITION_MANUAL -> positionTargetManual.orElse(0d);
+          case STOP -> inputs.positionRotations;
+        };
+    return Math.abs(inputs.positionRotations - targetPosition) <= positionTarget.getEpsilon();
   }
 }

@@ -38,7 +38,6 @@ public abstract class GenericSuperstructureIOTalonFX implements GenericSuperstru
   // zeroing stuff
   private final double zeroingVolts;
   protected final double zeroingOffset;
-  private final double zeroingVoltageThreshold;
 
   protected final VoltageOut voltageOutput = new VoltageOut(0).withUpdateFreqHz(0);
   private final NeutralOut neutralOutput = new NeutralOut();
@@ -51,7 +50,6 @@ public abstract class GenericSuperstructureIOTalonFX implements GenericSuperstru
      * sets the position to the zeroing offset */
     this.zeroingVolts = superstructureConfig.zeroingVolts;
     this.zeroingOffset = superstructureConfig.zeroingOffset;
-    this.zeroingVoltageThreshold = superstructureConfig.zeroingVoltageThreshold;
 
     // VOLTAGE, LIMITS AND RATIO CONFIG
     config.MotorOutput.Inverted = superstructureConfig.motorDirection;

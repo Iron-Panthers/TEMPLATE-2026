@@ -30,6 +30,8 @@ import frc.robot.subsystems.swerve.ModuleIOTalonFXSim;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonvisionSim;
+import frc.robot.utility.ElasticSetpoints;
+
 import java.util.function.BooleanSupplier;
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
@@ -46,6 +48,7 @@ public class RobotContainer {
 
   // DO NOT DELETE -- this actually does something important
   private RobotState robotState = RobotState.getInstance();
+  private ElasticSetpoints elasticSetpoints = ElasticSetpoints.getInstance();
 
   // private SendableChooser<Command> autoChooser;
   private LoggedDashboardChooser<Command> autoChooser;

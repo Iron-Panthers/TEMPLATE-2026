@@ -82,7 +82,7 @@ public abstract class GenericSuperstructureIOTalonFX implements GenericSuperstru
               new CANcoderConfiguration()
                   .withMagnetSensor(
                       new MagnetSensorConfigs()
-                          .withAbsoluteSensorDiscontinuityPoint(0.5)
+                          .withAbsoluteSensorDiscontinuityPoint(superstructureConfig.sensorDiscontinuityPoint)
                           .withSensorDirection(superstructureConfig.canCoderDirection)
                           .withMagnetOffset(superstructureConfig.canCoderOffset)));
       config.Feedback.withRemoteCANcoder(canCoder);

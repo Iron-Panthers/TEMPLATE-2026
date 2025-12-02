@@ -91,7 +91,7 @@ public class TeleopController {
   }
 
   @AutoLogOutput(key = "Swerve/Acceleration")
-  private double getAccerlation() {
+  private double getAcceleration() {
     return clampedVelocityDiff;
   }
 

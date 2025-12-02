@@ -59,7 +59,7 @@ public abstract class GenericSuperstructureIOTalonFX implements GenericSuperstru
     config.CurrentLimits.SupplyCurrentLimitEnable = true;
 
     config.Voltage.withPeakForwardVoltage(superstructureConfig.upperVoltLimit);
-    config.Voltage.withPeakReverseVoltage(superstructureConfig.lowerExtensionLimit);
+    config.Voltage.withPeakReverseVoltage(superstructureConfig.lowerVoltLimit);
     config.Feedback.withSensorToMechanismRatio(superstructureConfig.reduction);
 
     if (superstructureConfig.lowerExtensionLimitEnabled) {

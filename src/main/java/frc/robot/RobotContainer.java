@@ -200,8 +200,7 @@ public class RobotContainer {
   }
 
   public Command getAutoCommand() {
-    return AutoBuilder.buildAuto(
-        "R L4 (3) (EDC)"); // HACK: Replace once we get auto logging TODO: Fix hack
+    return autoChooser.get(); // HACK: Replace once we get auto logging
   }
 
   // runs when auto starts
@@ -224,6 +223,15 @@ public class RobotContainer {
     // TODO: Define all of the dashboard outputs here
     SmartDashboard.putString("Current Auto", autoChooser.get().getName());
   }
+
+  public static double doubleToDegrees(double angle) {
+    return (angle % 360 + 360) % 360;
+  }
+  
+  public static double relativeAngularDifference(double currentAngle, double newAngle) {
+    return (doubleToDegrees(newAngle - currentAngle) + 180) % 360 - 180;
+  }
+
   /** Ran every 20 milliseconds */
   public void updateSimulation() {
     if (Constants.getRobotMode() != Constants.Mode.SIM) return;

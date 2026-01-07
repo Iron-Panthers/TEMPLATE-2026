@@ -4,6 +4,7 @@ import static frc.robot.subsystems.swerve.DriveConstants.KINEMATICS;
 
 import com.pathplanner.lib.util.FlippingUtil;
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -39,6 +40,9 @@ public class Drive extends SubsystemBase {
   @AutoLogOutput(key = "Swerve/GyroYawOffset")
   private Rotation2d gyroYawOffset = new Rotation2d();
 
+  @AutoLogOutput(key = "Swerve/CurrentPosition")
+  private Pose2d currentPosition = new Pose2d();
+
   private ChassisSpeeds targetSpeeds = new ChassisSpeeds();
 
   private final TeleopController teleopController;
@@ -58,6 +62,7 @@ public class Drive extends SubsystemBase {
 
   @Override
   public void periodic() {
+    currentPosition = RobotState.getInstance().getEstimatedPose();
     // update inputs
     gyroIO.updateInputs(gyroInputs);
     Logger.processInputs("Swerve/Gyro", gyroInputs);
@@ -127,8 +132,10 @@ public class Drive extends SubsystemBase {
           "Swerve/HeadingTarget", headingController.getTargetHeading().getRadians());
       Logger.recordOutput("Swerve/HeadingOutput", headingController.update());
     }
+    Logger.recordOutput("Swerve/EstimatedX", RobotState.getInstance().getEstimatedPose().getX());
+    Logger.recordOutput("Swerve/EstimatedY", RobotState.getInstance().getEstimatedPose().getY());
   }
-
+  
   public void driveTeleopController(double xAxis, double yAxis, double omega, double acceleration) {
     if (DriverStation.isTeleopEnabled()) {
       if (driveMode != DriveModes.TELEOP) {

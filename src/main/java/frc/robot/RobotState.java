@@ -69,21 +69,9 @@ public class RobotState {
       };
   private Rotation2d lastGyroAngle = new Rotation2d();
 
-  @AutoLogOutput(key = "RobotState/Approach/LastOffset")
-  private double lastApproachOffset = 1;
-
-  @AutoLogOutput(key = "RobotState/Approach/LastBSide")
-  private boolean lastApproachBSide = false;
-
-  @AutoLogOutput(key = "RobotState/Approach/LastL1")
-  private boolean lastL1 = false;
-
   private Pose2d lastApproachPose = new Pose2d();
 
   private ChassisSpeeds robotSpeeds = new ChassisSpeeds();
-
-  private ApproachPose[] approachPoses =
-      generateApproachPoses(lastApproachOffset, lastApproachBSide, lastL1);
 
   private static RobotState instance;
 
@@ -208,85 +196,6 @@ public class RobotState {
     return lastApproachPose.getTranslation().getDistance(estimatedPose.getTranslation())
         * 100
         / 2.54;
-  }
-
-  // returns 6 approach poses, corresponding offset from reef wall & side, metres
-  private ApproachPose[] generateApproachPoses(double offset, boolean bSide, boolean l1) {
-    lastApproachBSide = bSide;
-    lastApproachOffset = offset;
-    Pose2d origin = new Pose2d(DriveConstants.BLUE_REEF_ORIGIN, Rotation2d.kZero);
-    List<Pose2d> poses = new ArrayList<Pose2d>();
-
-    Rotation2d horizontalOffset = bSide ? Rotation2d.kCW_Pi_2 : Rotation2d.kCCW_Pi_2;
-
-    for (int i = 0; i < 6; ++i) {
-      Rotation2d initialTheta = new Rotation2d(i * -Math.PI / 3);
-      Pose2d directPose = offsetByVector(origin, (offset + 1.285), initialTheta);
-
-      Pose2d pose = translateByVector(directPose, l1 ? 0.42 : 0.165, horizontalOffset);
-      poses.add(pose);
-    }
-    var poseArray = poses.toArray(new Pose2d[poses.size()]);
-
-    Logger.recordOutput("RobotState/Approach/BluePoses", poseArray);
-
-    return ApproachPose.fromPose2ds(poseArray);
-  }
-
-  private ApproachPose findApproachPose(double offset, boolean bSide, boolean l1) {
-    approachPoses = generateApproachPoses(offset, bSide, l1);
-
-    int closestIndex = 0;
-    // absolutely not
-    for (int i = closestIndex; i < approachPoses.length; ++i) {
-      if (getEstimatedPose()
-              .getTranslation()
-              .getDistance(approachPoses[i].getAlliancePose().getTranslation())
-          < getEstimatedPose()
-              .getTranslation()
-              .getDistance(approachPoses[closestIndex].getAlliancePose().getTranslation())) {
-        closestIndex = i;
-      }
-    }
-
-    ApproachPose approachPose = approachPoses[closestIndex];
-
-    Logger.recordOutput("RobotState/ApproachPose", approachPose.getAlliancePose());
-    Logger.recordOutput("RobotState/ApproachPoseIndex", closestIndex);
-
-    lastApproachPose = approachPose.getAlliancePose();
-
-    return approachPose;
-  }
-
-  public Command approachReefCommand(double offset, boolean bSide, boolean l1) {
-    Translation2d velocity = getVelocity();
-    ApproachPose approachPose = findApproachPose(offset, bSide, l1);
-    Pose2d estimatedPose =
-        DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().get() == Alliance.Red
-            ? FlippingUtil.flipFieldPose(getEstimatedPose())
-            : getEstimatedPose();
-    Rotation2d angle =
-        approachPose.getPose().getTranslation().minus(estimatedPose.getTranslation()).getAngle();
-    List<Waypoint> waypoints =
-        PathPlannerPath.waypointsFromPoses(
-            new Pose2d(
-                estimatedPose.getTranslation(),
-                // velocity.getNorm() > 0.4 ? velocity.getAngle() : angle),
-                angle),
-            new Pose2d(approachPose.getPose().getTranslation(), angle));
-
-    PathPlannerPath path =
-        new PathPlannerPath(
-            waypoints,
-            DriveConstants.ALIGN_PATH_CONSTRAINTS,
-            new IdealStartingState(velocity.getNorm(), estimatedPose.getRotation()),
-            new GoalEndState(
-                0.0,
-                l1
-                    ? approachPose.getPose().getRotation().minus(new Rotation2d(bSide ? -0.1 : 0.1))
-                    : approachPose.getPose().getRotation()));
-    return AutoBuilder.followPath(path);
   }
 
   private Pose2d translateByVector(Pose2d pose, double mag, Rotation2d theta) {

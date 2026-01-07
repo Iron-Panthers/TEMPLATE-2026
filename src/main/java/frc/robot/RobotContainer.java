@@ -30,6 +30,8 @@ import frc.robot.subsystems.swerve.ModuleIOTalonFXSim;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonvisionSim;
+import frc.robot.utility.ElasticSetpoints;
+
 import java.util.function.BooleanSupplier;
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
@@ -46,6 +48,7 @@ public class RobotContainer {
 
   // DO NOT DELETE -- this actually does something important
   private RobotState robotState = RobotState.getInstance();
+  private ElasticSetpoints elasticSetpoints = ElasticSetpoints.getInstance();
 
   // private SendableChooser<Command> autoChooser;
   private LoggedDashboardChooser<Command> autoChooser;
@@ -94,8 +97,8 @@ public class RobotContainer {
                       DriveConstants.MODULE_CONFIGS[3], driveSimulation.getModules()[3]));
           vision =
               new Vision(
-                  new VisionIOPhotonvisionSim(4, driveSimulation::getSimulatedDriveTrainPose),
-                  new VisionIOPhotonvisionSim(5, driveSimulation::getSimulatedDriveTrainPose));
+                  new VisionIOPhotonvisionSim("arducam-4",4, driveSimulation::getSimulatedDriveTrainPose),
+                  new VisionIOPhotonvisionSim("arducam-5", 5, driveSimulation::getSimulatedDriveTrainPose));
 
           SimulatedArena.getInstance().resetFieldForAuto();
         }
@@ -200,8 +203,7 @@ public class RobotContainer {
   }
 
   public Command getAutoCommand() {
-    return AutoBuilder.buildAuto(
-        "R L4 (3) (EDC)"); // HACK: Replace once we get auto logging TODO: Fix hack
+    return autoChooser.get(); // HACK: Replace once we get auto logging
   }
 
   // runs when auto starts
@@ -224,6 +226,15 @@ public class RobotContainer {
     // TODO: Define all of the dashboard outputs here
     SmartDashboard.putString("Current Auto", autoChooser.get().getName());
   }
+
+  public static double doubleToDegrees(double angle) {
+    return (angle % 360 + 360) % 360;
+  }
+  
+  public static double relativeAngularDifference(double currentAngle, double newAngle) {
+    return (doubleToDegrees(newAngle - currentAngle) + 180) % 360 - 180;
+  }
+
   /** Ran every 20 milliseconds */
   public void updateSimulation() {
     if (Constants.getRobotMode() != Constants.Mode.SIM) return;

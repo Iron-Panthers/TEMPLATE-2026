@@ -35,7 +35,7 @@ public final class Constants {
   /* running mode of robot */
   public static Mode getRobotMode() {
     return switch (ROBOT_TYPE) {
-      case COMP, VISION, ALPHA -> REPLAY ? Mode.REPLAY : Mode.REAL;
+      case COMP, VISION -> REPLAY ? Mode.REPLAY : Mode.REAL;
       case SIM -> Mode.SIM;
     };
   }
@@ -60,7 +60,6 @@ public final class Constants {
   public enum RobotType {
     COMP,
     SIM,
-    ALPHA,
     VISION;
   }
 }

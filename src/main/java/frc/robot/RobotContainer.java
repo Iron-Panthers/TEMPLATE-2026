@@ -100,15 +100,6 @@ public class RobotContainer {
           // vision = new Vision(new VisionIOPhotonvision("arducam-4", 0), new
           // VisionIOPhotonvision("arducam-5", 1));
         }
-        case ALPHA -> {
-          swerve =
-              new Drive(
-                  new GyroIOPigeon2(),
-                  new ModuleIOTalonFXReal(DriveConstants.MODULE_CONFIGS[0]),
-                  new ModuleIOTalonFXReal(DriveConstants.MODULE_CONFIGS[1]),
-                  new ModuleIOTalonFXReal(DriveConstants.MODULE_CONFIGS[2]),
-                  new ModuleIOTalonFXReal(DriveConstants.MODULE_CONFIGS[3]));
-        }
         case SIM -> {
           driveSimulation =
               new SwerveDriveSimulation(

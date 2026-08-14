@@ -1,8 +1,10 @@
 package frc.robot.lib.generic_subsystems.superstructure;
 
 import com.ctre.phoenix6.configs.MotionMagicConfigs;
+import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
-import com.ctre.phoenix6.controls.MotionMagicVoltage;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.DynamicMotionMagicVoltage;
 import com.ctre.phoenix6.controls.NeutralOut;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -13,17 +15,23 @@ public abstract class GenericSuperstructureIOSim implements GenericSuperstructur
 
   protected final TalonFX talon;
 
+  protected final TalonFXConfiguration config;
+  protected Slot0Configs gainsConfig = new Slot0Configs();
+
   protected final VoltageOut voltageOutput = new VoltageOut(0).withUpdateFreqHz(0);
 
   protected final NeutralOut neutralOutput = new NeutralOut();
 
-  protected final MotionMagicVoltage positionControl =
-      new MotionMagicVoltage(0).withUpdateFreqHz(0);
+  protected final DynamicMotionMagicVoltage positionControl =
+      new DynamicMotionMagicVoltage(0, 0, 0).withUpdateFreqHz(0);
 
   public GenericSuperstructureIOSim(int id) {
 
     talon = new TalonFX(id);
     talon.setNeutralMode(NeutralModeValue.Brake);
+    config =
+        new TalonFXConfiguration()
+            .withMotorOutput(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake));
   }
 
   @Override
@@ -57,7 +65,7 @@ public abstract class GenericSuperstructureIOSim implements GenericSuperstructur
       double motionMagicCruiseVelocity,
       double motionMagicJerk,
       GravityTypeValue gravityTypeValue) {
-    Slot0Configs gainsConfig = new Slot0Configs();
+    gainsConfig = new Slot0Configs();
     gainsConfig.kP = kP;
     gainsConfig.kI = kI;
     gainsConfig.kD = kD;
@@ -72,7 +80,16 @@ public abstract class GenericSuperstructureIOSim implements GenericSuperstructur
     motionMagicConfig.MotionMagicCruiseVelocity = motionMagicCruiseVelocity;
     motionMagicConfig.MotionMagicJerk = motionMagicJerk;
 
+    positionControl.withAcceleration(motionMagicAcceleration);
+    positionControl.withVelocity(motionMagicCruiseVelocity);
+    positionControl.withJerk(motionMagicJerk);
+
     talon.getConfigurator().apply(gainsConfig);
     talon.getConfigurator().apply(motionMagicConfig);
+  }
+
+  @Override
+  public void setMaxCruiseVelocity(double cruiseVelocity) {
+    positionControl.withVelocity(cruiseVelocity);
   }
 }

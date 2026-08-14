@@ -1,4 +1,4 @@
-package frc.robot.subsystems.canWatchdog;
+package frc.robot.subsystems.can_watchdog;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -94,6 +94,7 @@ public class CANWatchdogIOComp implements CANWatchdogIO {
       }
     }
   }
+
   /**
    * Sleep that handles interrupts and uses an int. Don't do this please?
    *

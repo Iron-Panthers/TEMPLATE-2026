@@ -1,5 +1,6 @@
 package frc.robot.subsystems.swerve;
 
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.geometry.Rotation2d;
 import frc.robot.subsystems.swerve.DriveConstants.Gains;
 import frc.robot.subsystems.swerve.DriveConstants.MotionProfileGains;
@@ -7,7 +8,7 @@ import org.littletonrobotics.junction.AutoLog;
 
 public interface ModuleIO {
 
-  // TODO: convert to wpilib units
+  // FIXME convert to wpilib units
   @AutoLog
   class ModuleIOInputs {
     public boolean driveMotorConnected = true;
@@ -21,8 +22,7 @@ public interface ModuleIO {
     public double driveSupplyCurrent = 0;
     public double driveStatorCurrent = 0;
 
-    // TODO: Check if this is at all different from steerPosition
-    public Rotation2d steerAbsolutePostion = new Rotation2d();
+    public Rotation2d steerAbsolutePosition = new Rotation2d();
     public Rotation2d steerPosition = new Rotation2d();
     public double steerVelocityRadsPerSec = 0;
     public double steerAppliedVolts = 0;
@@ -45,4 +45,8 @@ public interface ModuleIO {
   default void setSteerSlot0(Gains gains, MotionProfileGains motionProfileGains) {}
 
   default void stop() {}
+
+  default void setSupplyCurrentLimit(double amps) {}
+
+  public default void setNeutralMode(NeutralModeValue value) {}
 }

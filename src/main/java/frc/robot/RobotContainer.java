@@ -2,6 +2,7 @@
 
 package frc.robot;
 
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.RobotConfig;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -13,12 +14,12 @@ import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants.Mode;
 import frc.robot.commands.VibrateHIDCommand;
-import frc.robot.subsystems.canWatchdog.CANWatchdog;
-import frc.robot.subsystems.canWatchdog.CANWatchdogIO;
-import frc.robot.subsystems.canWatchdog.CANWatchdogIOComp;
+import frc.robot.commands.VisionTuningCommands;
+import frc.robot.subsystems.can_watchdog.CANWatchdog;
+import frc.robot.subsystems.can_watchdog.CANWatchdogIO;
+import frc.robot.subsystems.can_watchdog.CANWatchdogIOComp;
 import frc.robot.subsystems.rgb.RGB;
 import frc.robot.subsystems.rgb.RGBIO;
-import frc.robot.subsystems.rgb.RGBIOCANdle;
 import frc.robot.subsystems.swerve.Drive;
 import frc.robot.subsystems.swerve.DriveConstants;
 import frc.robot.subsystems.swerve.GyroIO;
@@ -30,6 +31,7 @@ import frc.robot.subsystems.swerve.ModuleIOTalonFXSim;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonvisionSim;
+import frc.robot.subsystems.vision.VisionIOPhotonvision;
 import frc.robot.utility.ElasticSetpoints;
 
 import java.util.function.BooleanSupplier;
@@ -48,7 +50,10 @@ public class RobotContainer {
 
   // DO NOT DELETE -- this actually does something important
   private RobotState robotState = RobotState.getInstance();
+
   private ElasticSetpoints elasticSetpoints = ElasticSetpoints.getInstance();
+
+  private boolean defaultZeroing = false;
 
   // private SendableChooser<Command> autoChooser;
   private LoggedDashboardChooser<Command> autoChooser;
@@ -76,8 +81,33 @@ public class RobotContainer {
                   new ModuleIOTalonFXReal(DriveConstants.MODULE_CONFIGS[2]),
                   new ModuleIOTalonFXReal(DriveConstants.MODULE_CONFIGS[3]));
           //   vision = new Vision(new VisionIOPhotonvision(4), new VisionIOPhotonvision(5));
-          rgb = new RGB(new RGBIOCANdle());
-          canWatchdog = new CANWatchdog(new CANWatchdogIOComp(), rgb);
+          // rgb = new RGB(new RGBIOCANdle());
+          // canWatchdog = new CANWatchdog(new CANWatchdogIOComp(), rgb);
+          vision =
+              new Vision(
+                  new VisionIOPhotonvision("CamC", 0),
+                  new VisionIOPhotonvision("CamA", 1),
+                  new VisionIOPhotonvision("CamB", 2));
+        }
+        case VISION -> {
+          swerve =
+              new Drive(
+                  new GyroIOPigeon2(),
+                  new ModuleIOTalonFXReal(DriveConstants.MODULE_CONFIGS[0]),
+                  new ModuleIOTalonFXReal(DriveConstants.MODULE_CONFIGS[1]),
+                  new ModuleIOTalonFXReal(DriveConstants.MODULE_CONFIGS[2]),
+                  new ModuleIOTalonFXReal(DriveConstants.MODULE_CONFIGS[3]));
+          // vision = new Vision(new VisionIOPhotonvision("arducam-4", 0), new
+          // VisionIOPhotonvision("arducam-5", 1));
+        }
+        case ALPHA -> {
+          swerve =
+              new Drive(
+                  new GyroIOPigeon2(),
+                  new ModuleIOTalonFXReal(DriveConstants.MODULE_CONFIGS[0]),
+                  new ModuleIOTalonFXReal(DriveConstants.MODULE_CONFIGS[1]),
+                  new ModuleIOTalonFXReal(DriveConstants.MODULE_CONFIGS[2]),
+                  new ModuleIOTalonFXReal(DriveConstants.MODULE_CONFIGS[3]));
         }
         case SIM -> {
           driveSimulation =
@@ -97,8 +127,9 @@ public class RobotContainer {
                       DriveConstants.MODULE_CONFIGS[3], driveSimulation.getModules()[3]));
           vision =
               new Vision(
-                  new VisionIOPhotonvisionSim("arducam-4",4, driveSimulation::getSimulatedDriveTrainPose),
-                  new VisionIOPhotonvisionSim("arducam-5", 5, driveSimulation::getSimulatedDriveTrainPose));
+                  new VisionIOPhotonvisionSim(
+                      "arducam-3", 3, driveSimulation::getSimulatedDriveTrainPose));
+          new VisionIOPhotonvisionSim("arducam-4", 4, driveSimulation::getSimulatedDriveTrainPose);
 
           SimulatedArena.getInstance().resetFieldForAuto();
         }
@@ -152,8 +183,13 @@ public class RobotContainer {
                       -driverA.getLeftX(),
                       driverA.getLeftTriggerAxis() - driverA.getRightTriggerAxis(),
                       DriveConstants.DRIVE_CONFIG.maxLinearAcceleration());
+                  if ((Math.abs(driverA.getLeftTriggerAxis()) > 0.1
+                          || Math.abs(driverA.getRightTriggerAxis()) > 0.1)) {
+                    swerve.clearHeadingControl();
+                  }
                 })
             .withName("Drive Teleop"));
+    // adjust this for x swerve
 
     driverA.start().onTrue(swerve.zeroGyroCommand());
 
@@ -171,20 +207,6 @@ public class RobotContainer {
 
     var passRobotConfig = robotConfig; // workaround TODO: is it necessary?
 
-    BooleanSupplier isRedAlliance =
-        () -> {
-          // Boolean supplier that controls when the path will be mirrored for the red
-          // alliance
-          // This will flip the path being followed to the red side of the field.
-          // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
-
-          var alliance = DriverStation.getAlliance();
-          if (alliance.isPresent()) {
-            return alliance.get() == DriverStation.Alliance.Red;
-          }
-          return false;
-        };
-
     AutoBuilder.configure(
         () -> RobotState.getInstance().getEstimatedPose(),
         (pose) -> RobotState.getInstance().resetPose(pose),
@@ -194,11 +216,12 @@ public class RobotContainer {
         },
         DriveConstants.HOLONOMIC_DRIVE_CONTROLLER,
         passRobotConfig,
-        isRedAlliance,
+        () -> RobotState.isAllianceRed(),
         swerve);
 
     autoChooser =
         new LoggedDashboardChooser<Command>("Auto Chooser", AutoBuilder.buildAutoChooser());
+    VisionTuningCommands.addTuningCommandsToAutoChooser(vision, autoChooser);
     SmartDashboard.putData("Auto Chooser", autoChooser.getSendableChooser());
   }
 
@@ -215,16 +238,14 @@ public class RobotContainer {
   // runs when teleop starts
   public void teleopInit() {
     CommandScheduler.getInstance().schedule(new VibrateHIDCommand(driverB.getHID(), 5, .5));
-
-    // vibrate controller at 30 seconds left
-    CommandScheduler.getInstance()
-        .schedule(new WaitCommand(105).andThen(new VibrateHIDCommand(driverB.getHID(), 3, 0.4)));
+    swerve.setNeutralMode(NeutralModeValue.Brake);
   }
 
   /** Ran when periodic disabled */
   public void updateDashboardStatus() {
     // TODO: Define all of the dashboard outputs here
-    SmartDashboard.putString("Current Auto", autoChooser.get().getName());
+        var selectedAuto = autoChooser.get();
+    SmartDashboard.putString("Current Auto", selectedAuto != null ? selectedAuto.getName() : "None");
   }
 
   public static double doubleToDegrees(double angle) {
@@ -242,9 +263,5 @@ public class RobotContainer {
     SimulatedArena.getInstance().simulationPeriodic();
     Logger.recordOutput(
         "FieldSimulation/RobotPosition", driveSimulation.getSimulatedDriveTrainPose());
-    Logger.recordOutput(
-        "FieldSimulation/Coral", SimulatedArena.getInstance().getGamePiecesArrayByType("Coral"));
-    Logger.recordOutput(
-        "FieldSimulation/Algae", SimulatedArena.getInstance().getGamePiecesArrayByType("Algae"));
   }
 }

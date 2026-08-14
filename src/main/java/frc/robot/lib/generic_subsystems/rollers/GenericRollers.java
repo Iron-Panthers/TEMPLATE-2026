@@ -1,21 +1,35 @@
 package frc.robot.lib.generic_subsystems.rollers;
 
+
 import edu.wpi.first.math.filter.LinearFilter;
 import org.littletonrobotics.junction.Logger;
 
-public abstract class GenericRollers<G extends GenericRollers.VoltageTarget> {
-  public interface VoltageTarget {
-    double getVolts();
+public abstract class GenericRollers<G extends GenericRollers.VelocityTarget> {
+  public interface VelocityTarget {
+    double getVelocity();
+
+    double getSupplyCurrentLimit();
   }
+
+  public enum ControlMode {
+    VELOCITY,
+    STOP
+  }
+
+  private ControlMode controlMode = ControlMode.STOP;
 
   private LinearFilter filter;
   private double filteredCurrent;
+  private double totalAmps = 0;
 
   private final String name;
   private final GenericRollersIO rollerIO;
-  private GenericRollersIOInputsAutoLogged inputs = new GenericRollersIOInputsAutoLogged();
+  protected GenericRollersIOInputsAutoLogged inputs = new GenericRollersIOInputsAutoLogged();
 
-  private G voltageTarget;
+  protected G velocityTarget;
+  protected double manualVelocityRPS = 0;
+  protected double manualSupplyCurrentAmps = 0;
+  protected boolean useManualVelocity = false;
 
   public GenericRollers(String name, GenericRollersIO rollerIO) {
     this.name = name;
@@ -27,15 +41,32 @@ public abstract class GenericRollers<G extends GenericRollers.VoltageTarget> {
     rollerIO.updateInputs(inputs);
     Logger.processInputs(name, inputs);
 
-    rollerIO.runVolts(voltageTarget.getVolts());
-    Logger.recordOutput("Rollers/" + name + "/Target", voltageTarget.toString());
+    
+    Logger.recordOutput(name + "/Target", velocityTarget.toString());
+    Logger.recordOutput(name + "/Target Velocity", velocityTarget.getVelocity());
+    Logger.recordOutput(name + "/Max Current Amps", velocityTarget.getSupplyCurrentLimit());
 
     filteredCurrent = this.filter.calculate(inputs.supplyCurrentAmps);
-    Logger.recordOutput("Rollers/" + name + "/FilteredCurrent", filteredCurrent);
+    Logger.recordOutput(name + "/Filtered Current", filteredCurrent);
+
+    totalAmps += (getSupplyCurrentAmps() / 50);
+    Logger.recordOutput(name + "/Total Amp Seconds", totalAmps);
+
+    Logger.recordOutput(name + "/Control Mode", controlMode.toString());
+    switch (controlMode) {
+      case VELOCITY -> {
+        rollerIO.setSupplyCurrentLimit(
+            useManualVelocity ? manualSupplyCurrentAmps : velocityTarget.getSupplyCurrentLimit());
+        rollerIO.runVelocity(useManualVelocity ? manualVelocityRPS : velocityTarget.getVelocity());
+      }
+      case STOP -> {
+        rollerIO.stop();
+      }
+    }
   }
 
-  public G getVoltageTarget() {
-    return voltageTarget;
+  public G getVelocityTarget() {
+    return velocityTarget;
   }
 
   public double getSupplyCurrentAmps() {
@@ -46,7 +77,25 @@ public abstract class GenericRollers<G extends GenericRollers.VoltageTarget> {
     return filteredCurrent;
   }
 
-  public void setVoltageTarget(G voltageTarget) {
-    this.voltageTarget = voltageTarget;
+  public void setVelocityTarget(G velocityTarget) {
+    setControlMode(velocityTarget.getVelocity() == 0 ? ControlMode.STOP : ControlMode.VELOCITY);
+    this.velocityTarget = velocityTarget;
+    this.useManualVelocity = false;
+  }
+
+  public void setVelocityTargetManual(double velocityRPS, double supplyCurrentAmps) {
+    // get the number of amps from the enum
+    setControlMode(ControlMode.VELOCITY);
+    this.manualVelocityRPS = velocityRPS;
+    this.manualSupplyCurrentAmps = supplyCurrentAmps;
+    this.useManualVelocity = true;
+  }
+
+  public ControlMode getControlMode() {
+    return controlMode;
+  }
+
+  public void setControlMode(ControlMode controlMode) {
+    this.controlMode = controlMode;
   }
 }

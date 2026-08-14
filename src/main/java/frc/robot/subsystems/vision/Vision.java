@@ -14,6 +14,7 @@ import frc.robot.subsystems.vision.VisionIO.PoseObservation;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 public class Vision extends SubsystemBase {
@@ -87,23 +88,27 @@ public class Vision extends SubsystemBase {
             TAG_COUNT_DEVIATIONS
                 .get(MathUtil.clamp(observation.tagCount() - 1, 0, TAG_COUNT_DEVIATIONS.size() - 1))
                 .computeDeviation(observation.averageDistance());
-
+        Logger.recordOutput("Vision/Camera" + cameraIndex + "/Std Devs", visionStdDevs);
         RobotState.getInstance().addVisionMeasurement(measurement, visionStdDevs);
+        Logger.recordOutput(
+            "Vision/Camera" + cameraIndex + "/Average Distance", observation.averageDistance());
       }
 
       Logger.recordOutput(
-          "Vision/Camera" + cameraIndex + "/TagPoses",
+          "Vision/Camera" + cameraIndex + "/Tag Poses",
           tagPoses.toArray(new Pose3d[tagPoses.size()]));
       Logger.recordOutput(
-          "Vision/Camera" + cameraIndex + "/estimatedPoses",
+          "Vision/Camera" + cameraIndex + "/Estimated Poses",
           estimatedPoses.toArray(new Pose3d[estimatedPoses.size()]));
       Logger.recordOutput(
-          "Vision/Camera" + cameraIndex + "/AcceptedPoses",
+          "Vision/Camera" + cameraIndex + "/Accepted Poses",
           acceptedPoses.toArray(new Pose3d[acceptedPoses.size()]));
       Logger.recordOutput(
-          "Vision/Camera" + cameraIndex + "/RejectedPoses",
+          "Vision/Camera" + cameraIndex + "/Rejected Poses",
           rejectedPoses.toArray(new Pose3d[rejectedPoses.size()]));
-
+      Logger.recordOutput(
+          "Vision/Camera" + cameraIndex + "/Angle",
+          acceptedPoses.stream().mapToDouble(pose -> pose.getRotation().getZ()).toArray());
       allTagPoses.addAll(tagPoses);
       allEstimatedPoses.addAll(estimatedPoses);
       allAcceptedPoses.addAll(acceptedPoses);
@@ -111,15 +116,42 @@ public class Vision extends SubsystemBase {
     }
 
     Logger.recordOutput(
-        "Vision/Summary/TagPoses", allTagPoses.toArray(new Pose3d[allTagPoses.size()]));
+        "Vision/Summary/Tag Poses", allTagPoses.toArray(new Pose3d[allTagPoses.size()]));
     Logger.recordOutput(
-        "Vision/Summary/estimatedPoses",
+        "Vision/Summary/Estimated Poses",
         allEstimatedPoses.toArray(new Pose3d[allEstimatedPoses.size()]));
     Logger.recordOutput(
-        "Vision/Summary/AcceptedPoses",
+        "Vision/Summary/Accepted Poses",
         allAcceptedPoses.toArray(new Pose3d[allAcceptedPoses.size()]));
     Logger.recordOutput(
-        "Vision/Summary/RejectedPoses",
+        "Vision/Summary/Rejected Poses",
         allRejectedPoses.toArray(new Pose3d[allRejectedPoses.size()]));
+  }
+
+  public int getCameraCount() {
+    return io.length;
+  }
+
+  public Pose3d[] getRobotTransforms() {
+    Pose3d[] results = new Pose3d[io.length];
+    for (int cameraIndex = 0; cameraIndex < io.length; cameraIndex++) {
+      if (inputs[cameraIndex].observations.length > 0) {
+        results[cameraIndex] = inputs[cameraIndex].observations[0].estimatedPose();
+      } else {
+        results[cameraIndex] = null;
+      }
+    }
+    return results;
+  }
+
+  @AutoLogOutput(key = "Vision/GetMultiTags")
+  public boolean getMultiTags() {
+    boolean isUsingMultiTagsForEstimate = false;
+    for (VisionIOInputsAutoLogged ioInputsAutoLogged : inputs) {
+      if (ioInputsAutoLogged.tagIDs.length > 1) {
+        isUsingMultiTagsForEstimate = true;
+      }
+    }
+    return isUsingMultiTagsForEstimate;
   }
 }

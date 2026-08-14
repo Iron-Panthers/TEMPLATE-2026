@@ -12,7 +12,6 @@ public interface GenericSuperstructureIO {
     public double appliedVolts = 0;
     public double supplyCurrentAmps = 0;
     public double statorCurrent = 0;
-    public double tempCelsius = 0;
     public boolean isZeroing = false;
   }
 
@@ -38,4 +37,8 @@ public interface GenericSuperstructureIO {
   default void stop() {}
 
   default void setOffset() {}
+
+  default void setSupplyCurrentLimit(double amps) {}
+
+  default void setMaxCruiseVelocity(double cruiseVelocity) {}
 }

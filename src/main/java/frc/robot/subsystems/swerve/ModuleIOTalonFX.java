@@ -1,7 +1,9 @@
 package frc.robot.subsystems.swerve;
 
 import static frc.robot.subsystems.swerve.DriveConstants.DRIVE_CONFIG;
+import static frc.robot.subsystems.swerve.DriveConstants.DRIVE_CURRENT_LIMIT_AMPS;
 import static frc.robot.subsystems.swerve.DriveConstants.MODULE_CONSTANTS;
+import static frc.robot.subsystems.swerve.DriveConstants.STEER_CURRENT_LIMIT_AMPS;
 import static frc.robot.utility.PhoenixUtil.*;
 
 import com.ctre.phoenix6.BaseStatusSignal;
@@ -20,6 +22,7 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
+import frc.robot.MotorOutputManager;
 import frc.robot.subsystems.swerve.DriveConstants.Gains;
 import frc.robot.subsystems.swerve.DriveConstants.ModuleConfig;
 import frc.robot.subsystems.swerve.DriveConstants.MotionProfileGains;
@@ -57,11 +60,11 @@ public abstract class ModuleIOTalonFX implements ModuleIO {
     encoder = new CANcoder(config.encoderID());
 
     // Drive Config
-    driveConfig.CurrentLimits.StatorCurrentLimit = 80; // TODO: Make constant
-    driveConfig.CurrentLimits.StatorCurrentLimitEnable = true;
+    driveConfig.CurrentLimits.SupplyCurrentLimit = DRIVE_CURRENT_LIMIT_AMPS; // TODO: Make constant
+    driveConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
 
     driveConfig.Feedback.SensorToMechanismRatio = MODULE_CONSTANTS.driveReduction();
-    driveConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+    driveConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
     driveConfig.MotorOutput.Inverted = config.driveInverted();
 
     setDriveSlot0(MODULE_CONSTANTS.driveGains());
@@ -70,8 +73,8 @@ public abstract class ModuleIOTalonFX implements ModuleIO {
     tryUntilOk(5, () -> driveTalon.setPosition(0.0, 0.25));
 
     // Steer Config
-    steerConfig.CurrentLimits.StatorCurrentLimit = 50; // TODO: Make constant
-    steerConfig.CurrentLimits.StatorCurrentLimitEnable = true;
+    steerConfig.CurrentLimits.SupplyCurrentLimit = STEER_CURRENT_LIMIT_AMPS; // TODO: Make constant
+    steerConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
 
     steerConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
     steerConfig.MotorOutput.Inverted = config.steerInverted();
@@ -102,17 +105,26 @@ public abstract class ModuleIOTalonFX implements ModuleIO {
     steerAppliedVolts = steerTalon.getMotorVoltage();
     steerSupplyCurrent = steerTalon.getSupplyCurrent();
     steerStatorCurrent = steerTalon.getStatorCurrent();
+
+    MotorOutputManager.getInstance()
+        .registerMotorOutputs(
+            () -> driveSupplyCurrent.getValueAsDouble(),
+            () -> steerSupplyCurrent.getValueAsDouble());
+
     // TODO: Why is this 100 Hz when everything else is 50 Hz? (Do we use can FD?)
     BaseStatusSignal.setUpdateFrequencyForAll(
         100,
-        drivePosition,
         driveVelocity,
+        drivePosition,
+        encoder.getAbsolutePosition(),
+        steerPosition,
+        steerVelocity);
+
+    BaseStatusSignal.setUpdateFrequencyForAll(
+        50,
         driveAppliedVolts,
         driveSupplyCurrent,
         driveStatorCurrent,
-        encoder.getAbsolutePosition(),
-        steerPosition,
-        steerVelocity,
         steerAppliedVolts,
         steerSupplyCurrent,
         steerStatorCurrent);
@@ -153,7 +165,7 @@ public abstract class ModuleIOTalonFX implements ModuleIO {
                 steerSupplyCurrent,
                 steerStatorCurrent)
             .isOK();
-    inputs.steerAbsolutePostion = steerAbsolutePosition.get();
+    inputs.steerAbsolutePosition = steerAbsolutePosition.get();
     inputs.steerPosition = Rotation2d.fromRotations(steerPosition.getValueAsDouble());
     inputs.steerVelocityRadsPerSec = Units.rotationsToRadians(steerVelocity.getValueAsDouble());
     inputs.steerAppliedVolts = steerAppliedVolts.getValueAsDouble();
@@ -195,5 +207,23 @@ public abstract class ModuleIOTalonFX implements ModuleIO {
     steerConfig.MotionMagic.MotionMagicAcceleration = motionProfileGains.acceleration();
     steerConfig.MotionMagic.MotionMagicJerk = motionProfileGains.jerk();
     steerTalon.getConfigurator().apply(steerConfig);
+  }
+
+  @Override
+  public void setSupplyCurrentLimit(double amps) {
+    if (Math.abs(driveConfig.CurrentLimits.SupplyCurrentLimit - amps) > 0.01) {
+      driveConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
+      driveConfig.CurrentLimits.SupplyCurrentLimit = amps;
+      driveTalon.getConfigurator().apply(driveConfig);
+    }
+  }
+
+  @Override
+  public void setNeutralMode(NeutralModeValue value) {
+    if (driveConfig.MotorOutput.NeutralMode != value) {
+      driveConfig.MotorOutput.NeutralMode = value;
+      driveConfig.CurrentLimits.SupplyCurrentLimit = (value == NeutralModeValue.Brake) ? 30 : 40;
+      tryUntilOk(5, () -> driveTalon.getConfigurator().apply(driveConfig, 0.25));
+    }
   }
 }

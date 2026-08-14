@@ -1,12 +1,16 @@
 package frc.robot.subsystems.rgb;
 
+import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.Seconds;
+
+import edu.wpi.first.wpilibj.LEDPattern;
+import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.subsystems.rgb.RGBConstants.Colors;
 import frc.robot.subsystems.rgb.RGBConstants.RGBMessage;
 import frc.robot.subsystems.rgb.RGBConstants.RGBMessage.MessagePriority;
-import frc.robot.subsystems.rgb.RGBConstants.RGBMessage.RGBPattern;
 import java.util.Optional;
 import org.littletonrobotics.junction.Logger;
 
@@ -14,19 +18,34 @@ public class RGB extends SubsystemBase {
   public static enum RGBMessages {
     CRITICAL_NETWORK_FAILURE(
         new RGBMessage(
-            Colors.ORANGE, RGBPattern.STROBE, MessagePriority.A_CRITICAL_NETWORK_FAILURE, true)),
+            LEDPattern.solid(Color.kOrange).blink(Seconds.of(1 / 8)),
+            MessagePriority.A_CRITICAL_NETWORK_FAILURE,
+            true)),
     MISSING_CAN_DEVICE(
-        new RGBMessage(Colors.RED, RGBPattern.FIRE, MessagePriority.B_MISSING_CAN_DEVICE, true)),
-    CLIMB(new RGBMessage(Colors.PURPLE, RGBPattern.STROBE, MessagePriority.C_CLIMB, true)),
-    READY_TO_INTAKE(
-        new RGBMessage(Colors.BLUE, RGBPattern.STROBE, MessagePriority.D_READY_TO_INTAKE, true)),
-    L2(new RGBMessage(Colors.ORANGE, RGBPattern.STROBE, MessagePriority.E_L2, true)),
-    L3(new RGBMessage(Colors.YELLOW, RGBPattern.STROBE, MessagePriority.F_L3, true)),
-    L4(new RGBMessage(Colors.BLUE, RGBPattern.STROBE, MessagePriority.G_L4, true)),
-    L1(new RGBMessage(Colors.RED, RGBPattern.STROBE, MessagePriority.H_L1, true)),
+        new RGBMessage(LEDPattern.solid(Color.kRed), MessagePriority.B_MISSING_CAN_DEVICE, true)),
+    L2(
+        new RGBMessage(
+            LEDPattern.solid(Color.kOrange).blink(Seconds.of(1 / 8)), MessagePriority.E_L2, true)),
+    L3(
+        new RGBMessage(
+            LEDPattern.solid(Color.kYellow).blink(Seconds.of(1 / 8)), MessagePriority.F_L3, true)),
+    L4(
+        new RGBMessage(
+            LEDPattern.solid(Color.kBlue).blink(Seconds.of(1 / 8)), MessagePriority.G_L4, true)),
+    L1(
+        new RGBMessage(
+            LEDPattern.solid(Color.kRed).blink(Seconds.of(1 / 8)), MessagePriority.H_L1, true)),
     CORAL_DETECTED(
-        new RGBMessage(Colors.GREEN, RGBPattern.PULSE, MessagePriority.I_CORAL_DETECTED, true)),
-    DEFAULT(new RGBMessage(Colors.WHITE, RGBPattern.RAINBOW, MessagePriority.J_DEFAULT, false));
+        new RGBMessage(
+            LEDPattern.solid(Color.kGreen).breathe(Seconds.of(2)),
+            MessagePriority.I_CORAL_DETECTED,
+            true)),
+    DEFAULT(
+        new RGBMessage(
+            LEDPattern.rainbow(255, 51)
+                .scrollAtAbsoluteSpeed(MetersPerSecond.of(0.5), Meters.of(0.01)),
+            MessagePriority.J_DEFAULT,
+            false));
 
     RGBMessage rgbMessage;
 
@@ -75,7 +94,7 @@ public class RGB extends SubsystemBase {
     }
     rgbIO.updateInputs(inputs);
     Logger.processInputs("RGB", inputs);
-    Logger.recordOutput("RGB/Total messages not expired", total);
+    Logger.recordOutput("RGB/Total Messages Not Expired", total);
     Logger.recordOutput(
         "RGB/Message",
         currentMessage.isPresent() ? currentMessage.get().getPriority().name() : "None");

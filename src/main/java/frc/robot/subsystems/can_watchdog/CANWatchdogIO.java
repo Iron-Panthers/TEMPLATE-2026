@@ -1,4 +1,4 @@
-package frc.robot.subsystems.canWatchdog;
+package frc.robot.subsystems.can_watchdog;
 
 import java.util.stream.Stream;
 

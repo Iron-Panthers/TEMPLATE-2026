@@ -44,12 +44,12 @@ public class Robot extends LoggedRobot {
     Pathfinding.setPathfinder(new LocalADStarAK());
 
     PathPlannerLogging.setLogTargetPoseCallback(
-        (pose) -> Logger.recordOutput("PathPlanner/TargetPose", pose));
+        (pose) -> Logger.recordOutput("Path Planner/Target Pose", pose));
     PathPlannerLogging.setLogCurrentPoseCallback(
-        (pose) -> Logger.recordOutput("PathPlanner/CurrentPose", pose));
+        (pose) -> Logger.recordOutput("Path Planner/Current Pose", pose));
     PathPlannerLogging.setLogActivePathCallback(
         (path) ->
-            Logger.recordOutput("PathPlanner/ActivePath", path.toArray(new Pose2d[path.size()])));
+            Logger.recordOutput("Path Planner/Active Path", path.toArray(new Pose2d[path.size()])));
 
     // Record metadata
     Logger.recordMetadata("ProjectName", BuildConstants.MAVEN_NAME);
@@ -101,8 +101,8 @@ public class Robot extends LoggedRobot {
 
     robotContainer = new RobotContainer();
 
-    FollowPathCommand.warmupCommand().schedule();
-    PathfindingCommand.warmupCommand().schedule();
+    CommandScheduler.getInstance().schedule(FollowPathCommand.warmupCommand());
+    CommandScheduler.getInstance().schedule(PathfindingCommand.warmupCommand());
   }
 
   /** This function is called periodically during all modes. */
@@ -136,7 +136,7 @@ public class Robot extends LoggedRobot {
 
     autoCommand = robotContainer.getAutoCommand();
     if (autoCommand != null) {
-      autoCommand.schedule();
+      CommandScheduler.getInstance().schedule(autoCommand);
     }
 
     robotContainer.autoInit();

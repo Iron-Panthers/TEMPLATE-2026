@@ -7,7 +7,6 @@ import java.util.stream.IntStream;
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
-import org.photonvision.PhotonPoseEstimator.PoseStrategy;
 import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
@@ -19,9 +18,7 @@ public class VisionIOPhotonvision implements VisionIO {
     camera = new PhotonCamera(name);
     estimator =
         new PhotonPoseEstimator(
-            VisionConstants.APRIL_TAG_FIELD_LAYOUT,
-            PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
-            VisionConstants.CAMERA_TRANSFORM[index - 1]);
+            VisionConstants.APRIL_TAG_FIELD_LAYOUT, VisionConstants.CAMERA_TRANSFORM[index]);
   }
 
   @Override
@@ -36,7 +33,13 @@ public class VisionIOPhotonvision implements VisionIO {
       PhotonPipelineResult frame = results.get(frameIndex);
       if (!frame.hasTargets()) continue;
 
-      Optional<EstimatedRobotPose> optEstimation = estimator.update(frame);
+      Optional<EstimatedRobotPose> optEstimation;
+
+      optEstimation = estimator.estimateCoprocMultiTagPose(frame);
+      if (optEstimation.isEmpty()) {
+        optEstimation = estimator.estimateLowestAmbiguityPose(frame);
+      }
+
       if (optEstimation.isEmpty()) continue;
       EstimatedRobotPose estimation = optEstimation.get();
 
@@ -56,7 +59,12 @@ public class VisionIOPhotonvision implements VisionIO {
         FIDs.add(id);
       }
       if (badTag) continue;
-      allTagIDs.addAll(FIDs);
+
+      for (int tag : FIDs) {
+        if (!allTagIDs.contains(tag)) {
+          allTagIDs.add(tag);
+        }
+      }
 
       var observation =
           new PoseObservation(
